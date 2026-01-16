@@ -31,5 +31,9 @@
     "type": "git",
     "url": "https://github.com/khoavhd/figma-sentinel.git",
     "directory": "packages/core"
+  },
+  "dependencies": {
+    "fast-glob": "^3.3.3",
+    "zod": "^3.24.4"
   }
 }

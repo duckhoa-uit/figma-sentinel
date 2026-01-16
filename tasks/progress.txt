@@ -3,6 +3,8 @@
 - Package structure: packages/core, packages/cli, packages/action
 - Package names: @khoavhd/figma-sentinel-core, @khoavhd/figma-sentinel, @khoavhd/figma-sentinel-action
 - Each package has its own tsconfig.json with NodeNext module resolution
+- All packages extend tsconfig.base.json for shared compiler options
+- Use .eslintrc.cjs for ESLint config (CommonJS for compatibility)
 
 ---
 
@@ -26,4 +28,30 @@ Thread: https://ampcode.com/threads/T-019bc73e-0148-701b-a29b-9e83ca62e2ad
   - tsup is used for building packages (ESM/CJS with dts)
   - vitest is used for testing
   - TypeScript devDependency is installed at root level
+---
+
+## 2025-01-16 - US-002
+Thread: https://ampcode.com/threads/T-019bc740-0b20-7285-8050-c20bbf08cb4e
+- Configured shared TypeScript and ESLint across all packages
+- Created root tsconfig.json with project references to all packages
+- Created tsconfig.base.json with shared compiler options (strict mode, noUnusedLocals, etc.)
+- Updated each package tsconfig.json to extend tsconfig.base.json with composite: true
+- Created .eslintrc.cjs with @typescript-eslint rules
+- Created .prettierrc with consistent formatting settings
+- Added ESLint and Prettier as root devDependencies
+- Updated .gitignore to include *.tsbuildinfo
+- Files changed:
+  - package.json (added ESLint, Prettier deps, lint:fix and format scripts)
+  - tsconfig.json (new - root with project references)
+  - tsconfig.base.json (new - shared compiler options)
+  - packages/core/tsconfig.json (extends base)
+  - packages/cli/tsconfig.json (extends base, references core)
+  - packages/action/tsconfig.json (extends base, references core)
+  - .eslintrc.cjs (new)
+  - .prettierrc (new)
+  - .gitignore (added *.tsbuildinfo)
+- **Learnings for future iterations:**
+  - Use .eslintrc.cjs (not .js) for CommonJS ESLint config
+  - composite: true required in package tsconfigs for project references
+  - cli and action packages reference core package
 ---
