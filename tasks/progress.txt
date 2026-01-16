@@ -459,3 +459,27 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc788-66f4-75da-861e-6c244
   - ChangeDetectionResult has `changed` property not `modified`
   - SentinelResult.changeResult may be undefined - use nullish coalescing for safety
 ---
+
+## 2025-01-16 - US-021
+Thread: https://ampcode.com/threads/T-019bc78b-9a30-75de-b411-5878a369a4f8
+- Implemented PR creation module in packages/action/src/pr.ts
+- createOrUpdatePR function uses @actions/github Octokit to create/update PRs
+- Reads PR body from generated PR_BODY.md file (result.prBodyPath)
+- Supports configurable title, labels, and reviewers from inputs
+- Checks for existing open PR on the branch and updates instead of creating new
+- Sets pr-number and pr-url outputs on success
+- Added pr-reviewers input to action.yml for requesting reviewers
+- Added parseLabels and parseReviewers helpers to split comma-separated input strings
+- Added getCurrentBranch and getBaseBranch helpers using github.context
+- Updated index.ts to integrate PR creation when create-pr=true and hasChanges=true
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - packages/action/src/pr.ts (new)
+  - packages/action/src/index.ts (integrated PR creation)
+  - packages/action/action.yml (added pr-reviewers input)
+- **Learnings for future iterations:**
+  - Use nested if check for array index access to avoid TS18048 "possibly undefined" errors
+  - @actions/github getOctokit requires GITHUB_TOKEN environment variable
+  - github.context provides repo owner/name and event context (eventName, ref, payload)
+  - PR creation skipped in dry-run mode for safety
+---
