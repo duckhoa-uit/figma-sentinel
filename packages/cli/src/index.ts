@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { syncCommand } from './commands/sync.js';
 import { checkCommand } from './commands/check.js';
 import { diffCommand } from './commands/diff.js';
+import { initCommand } from './commands/init.js';
 
 const program = new Command();
 
@@ -55,8 +56,11 @@ program
 program
   .command('init')
   .description('Initialize Figma Sentinel in your project')
-  .action(() => {
-    console.log('init command - to be implemented in US-017');
+  .option('--cwd <dir>', 'Set working directory')
+  .action(async (options) => {
+    await initCommand({
+      cwd: options.cwd,
+    });
   });
 
 program.parse();
