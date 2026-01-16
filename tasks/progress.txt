@@ -10,6 +10,8 @@
 - Test fixtures go in `src/__tests__/fixtures/` and must be excluded from tsconfig
 - Use ESM import style for fast-glob: `import fg from 'fast-glob'`
 - Use `.js` extension in imports for ESM compatibility (e.g., `from './types.js'`)
+- Use vi.stubGlobal('fetch', ...) in Vitest to mock global fetch
+- Use fs.rmSync with { recursive: true, force: true } for test cleanup
 
 ---
 
@@ -188,4 +190,26 @@ Thread: https://ampcode.com/threads/T-019bc753-9842-776f-a985-6ef6ee4f37aa
   - ExportedImage/ImageExportResult types defined locally in differ.ts to avoid circular dependency with image-exporter
   - formatColor outputs uppercase hex with optional opacity percentage
   - formatPropertyPath transforms technical paths to human-readable labels (fills -> Fill, fontSize -> font size)
+---
+
+## 2025-01-16 - US-009
+Thread: https://ampcode.com/threads/T-019bc758-0987-734a-acee-b309df02f85a
+- Migrated image-exporter module from source to packages/core/src/image-exporter.ts
+- Updated imports to use local types with .js extension and local storage module for sanitizeNodeId
+- Exported exportImages, exportImagesForMultipleFiles, cleanupRemovedImages, getImagePath, getPreviousImagePath from index.ts
+- Also exported ExportedImage, ImageExportResult, ImageExportError, ExportImagesInput types
+- Updated differ.ts to import ExportedImage/ImageExportResult from image-exporter instead of defining locally
+- Adapted 18 tests to packages/core/src/__tests__/image-exporter.test.ts (converted from Jest to Vitest)
+- All 137 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ + 18 image-exporter)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/image-exporter.ts (new)
+  - packages/core/src/__tests__/image-exporter.test.ts (new)
+  - packages/core/src/index.ts (added image-exporter exports)
+  - packages/core/src/differ.ts (import types from image-exporter)
+- **Learnings for future iterations:**
+  - Use vi.stubGlobal('fetch', ...) in Vitest to mock global fetch
+  - ExportedImage has `imagePath` field (not `path`)
+  - Use fs.rmSync with { recursive: true, force: true } for test cleanup
+  - Image paths use sanitizeNodeId from storage module (e.g., 1:23 -> 1-23.png)
 ---
