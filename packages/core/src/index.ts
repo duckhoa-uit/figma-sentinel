@@ -35,3 +35,11 @@ export {
 
 // Parser exports
 export { parseFile, parseDirectives, parseDirectivesSync } from './parser.js';
+
+// Figma Client exports
+export {
+  fetchNodes,
+  type FetchedNode,
+  type FetchResult,
+  type FetchError,
+} from './figma-client.js';

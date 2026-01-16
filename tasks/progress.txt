@@ -7,6 +7,9 @@
 - Use .eslintrc.cjs for ESLint config (CommonJS for compatibility)
 - vitest is installed at root level with --passWithNoTests for packages without tests
 - Test files go in `src/__tests__/*.test.ts` within each package
+- Test fixtures go in `src/__tests__/fixtures/` and must be excluded from tsconfig
+- Use ESM import style for fast-glob: `import fg from 'fast-glob'`
+- Use `.js` extension in imports for ESM compatibility (e.g., `from './types.js'`)
 
 ---
 
@@ -97,4 +100,30 @@ Thread: https://ampcode.com/threads/T-019bc744-c536-778b-98d7-6cd7342e9654
 - **Learnings for future iterations:**
   - Test assertions may need adjustment for sorted keys (color object keys sorted alphabetically)
   - Use `describe` blocks from vitest for test organization
+---
+
+## 2025-01-16 - US-005
+Thread: https://ampcode.com/threads/T-019bc748-28f4-7289-915a-1d77290e8186
+- Migrated parser module from source to packages/core/src/parser.ts
+- Updated imports to use local types with .js extension and ESM-style fast-glob import
+- Exported parseFile, parseDirectives, parseDirectivesSync from index.ts
+- Cloned and adapted 14 tests to packages/core/src/__tests__/parser.test.ts
+- Created test fixtures directory with 7 TSX fixture files
+- Added @types/node as root devDependency for node type definitions
+- Updated packages/core/tsconfig.json to exclude fixtures from typecheck
+- All 32 tests pass (18 normalizer + 14 parser)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/parser.ts (new)
+  - packages/core/src/__tests__/parser.test.ts (new)
+  - packages/core/src/__tests__/fixtures/*.tsx (7 new fixture files)
+  - packages/core/src/index.ts (added parser exports)
+  - packages/core/tsconfig.json (added types and exclude patterns)
+  - package.json (added @types/node)
+  - pnpm-lock.yaml
+- **Learnings for future iterations:**
+  - TSX fixture files must be excluded from TypeScript typecheck to avoid React/JSX errors
+  - Use ESM import style for fast-glob: `import fg from 'fast-glob'`
+  - Test fixtures go in src/__tests__/fixtures/ directory
+  - Use vi.spyOn() and vi.restoreAllMocks() for console mocking in vitest
 ---
