@@ -560,3 +560,30 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc792-06b0-74bd-9ca3-986ba
   - Use tables for configuration options and action inputs/outputs for clarity
   - Include code examples for all major features
 ---
+
+## 2025-01-16 - US-026
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc795-f7bd-70cc-8ccc-6d5caa763b4f
+- Created CONTRIBUTING.md with comprehensive contribution guidelines
+  - Development setup with prerequisites (Node.js 18+, pnpm 9+)
+  - Project structure overview
+  - Available scripts reference
+  - Development workflow guide
+  - Coding standards and style guidelines
+  - Testing instructions
+  - PR process and changesets usage
+  - Issue reporting and feature request guidance
+- Created CHANGELOG.md with initial unreleased entry
+  - Follows Keep a Changelog format
+  - Lists all initial features across core, CLI, and action packages
+- Created .npmrc with pnpm configuration (engine-strict, auto-install-peers)
+- LICENSE already exists from US-001
+- Typecheck passes
+- Files changed:
+  - CONTRIBUTING.md (new)
+  - CHANGELOG.md (new)
+  - .npmrc (new)
+- **Learnings for future iterations:**
+  - CONTRIBUTING.md structure: Setup → Structure → Scripts → Workflow → Standards → Testing → PR Process
+  - Use Keep a Changelog format for CHANGELOG.md
+  - .npmrc engine-strict=true enforces Node.js version requirements
+---
