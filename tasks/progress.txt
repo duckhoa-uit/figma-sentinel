@@ -501,3 +501,24 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc78e-991e-765a-b115-6a259
   - Use --frozen-lockfile for reproducible installs in CI
   - Add concurrency group to avoid redundant CI runs
 ---
+
+## 2025-01-16 - US-023
+Thread: https://ampcode.com/threads/T-019bc790-248f-72ba-b612-41b094fac7c9
+- Added @changesets/cli as dev dependency for versioning and publishing
+- Created .changeset/config.json with access: public for npm publishing
+- Created .github/workflows/release.yml for automated publishing
+- Workflow triggers on push to main, uses changesets/action@v1
+- Added changeset, version, and release scripts to root package.json
+- Configured with id-token permission for npm provenance
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - .changeset/config.json (new)
+  - .github/workflows/release.yml (new)
+  - package.json (added changeset scripts and @changesets/cli dep)
+  - pnpm-lock.yaml
+- **Learnings for future iterations:**
+  - Use changesets/action@v1 for GitHub Actions integration
+  - NPM_TOKEN secret required for npm publishing
+  - id-token: write permission needed for npm provenance
+  - Use pnpm changeset publish for monorepo package publishing
+---
