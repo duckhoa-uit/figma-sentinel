@@ -1,5 +1,10 @@
 # Figma Sentinel
 
+[![npm version](https://img.shields.io/npm/v/@khoavhd/figma-sentinel-core.svg)](https://www.npmjs.com/package/@khoavhd/figma-sentinel-core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+
 > Automated design change tracking and synchronization from Figma to your codebase
 
 Figma Sentinel is a directive-driven tool that monitors Figma designs referenced in your source code, detects changes, and creates automated pull requests with detailed changelogs. It bridges the gap between design and development by keeping your codebase in sync with Figma.
@@ -13,31 +18,53 @@ Figma Sentinel is a directive-driven tool that monitors Figma designs referenced
 - **Automated PRs**: Create pull requests with detailed changelogs via GitHub Actions
 - **Flexible Configuration**: Support for multiple config formats (JS, JSON, package.json)
 
+## Requirements
+
+- **Node.js 18+** (uses native fetch)
+- **Figma Personal Access Token** ([Get one here](https://www.figma.com/developers/api#access-tokens))
+- **pnpm/npm/yarn** for package installation
+
+## Packages
+
+| Package | Description | npm |
+|---------|-------------|-----|
+| [`@khoavhd/figma-sentinel`](./packages/cli) | CLI tool | [![npm](https://img.shields.io/npm/v/@khoavhd/figma-sentinel.svg)](https://www.npmjs.com/package/@khoavhd/figma-sentinel) |
+| [`@khoavhd/figma-sentinel-core`](./packages/core) | Core library | [![npm](https://img.shields.io/npm/v/@khoavhd/figma-sentinel-core.svg)](https://www.npmjs.com/package/@khoavhd/figma-sentinel-core) |
+| [`@khoavhd/figma-sentinel-action`](./packages/action) | GitHub Action | [Marketplace](https://github.com/khoavhd/figma-sentinel-action) |
+
 ## Installation
 
-### CLI
+### CLI (Recommended)
 
 ```bash
-# npm
-npm install -g @khoavhd/figma-sentinel
+# Run directly with npx (no install required)
+npx @khoavhd/figma-sentinel sync
 
-# pnpm
+# Or install globally
+npm install -g @khoavhd/figma-sentinel
 pnpm add -g @khoavhd/figma-sentinel
+
+# Verify installation
+figma-sentinel --version
 ```
 
-### Core Library
+### Core Library (for programmatic use)
 
 ```bash
-# npm
 npm install @khoavhd/figma-sentinel-core
-
-# pnpm
+# or
 pnpm add @khoavhd/figma-sentinel-core
 ```
 
 ### GitHub Action
 
-Add to your workflow (see [GitHub Action Usage](#github-action-usage) section).
+```yaml
+- uses: khoavhd/figma-sentinel-action@v1
+  with:
+    figma-token: ${{ secrets.FIGMA_TOKEN }}
+```
+
+See [GitHub Action Usage](#github-action-usage) for complete workflow examples.
 
 ## Quick Start
 
