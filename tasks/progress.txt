@@ -14,6 +14,7 @@
 - Use fs.rmSync with { recursive: true, force: true } for test cleanup
 - Cannot spy on ESM exports (child_process.spawnSync) - avoid mocking or use vi.mock at module level
 - Use `while (conditionVar)` instead of `while (true)` to avoid ESLint no-constant-condition error
+- Zod is used for config validation - use .partial() for optional fields and check unknown fields separately
 
 ---
 
@@ -255,4 +256,26 @@ Thread: https://ampcode.com/threads/T-019bc762-1157-700a-a4d4-13c9b1a186a6
   - Use `while (continueSearch)` instead of `while (true)` to avoid ESLint no-constant-condition error
   - SentinelResult includes changeResult, changelogPath, prBodyPath for CI integrations
   - Integration tests mock fetch with vi.stubGlobal and create temp directories with fixture files
+---
+
+## 2025-01-16 - US-012
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc767-8e73-72db-b41b-f7b2b634fd1f
+- Migrated config module from source to packages/core/src/config.ts
+- Replaced manual validation with Zod schema (SentinelConfigSchema)
+- Kept DEFAULT_CONFIG, mergeConfig, createDefaultConfigFile, loadConfig, loadConfigFromFile functions
+- Exported validateConfig, loadConfig, DEFAULT_CONFIG, SentinelConfigSchema, and more from index.ts
+- Updated sentinel.ts to import config utilities from config.js instead of defining locally
+- Created 37 comprehensive unit tests in packages/core/src/__tests__/config.test.ts
+- All 222 tests pass (185 previous + 37 config tests)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/config.ts (new)
+  - packages/core/src/__tests__/config.test.ts (new)
+  - packages/core/src/index.ts (added config exports)
+  - packages/core/src/sentinel.ts (removed duplicate code, imports from config.js)
+- **Learnings for future iterations:**
+  - Zod .partial() allows all fields to be optional for partial validation
+  - Unknown field validation must be done separately since Zod ignores unknown fields by default
+  - Use `while (continueSearch)` pattern from config.ts findConfigFile (pattern already established)
+  - Config module exports SentinelConfigSchema for programmatic validation
 ---
