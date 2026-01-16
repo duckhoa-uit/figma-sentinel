@@ -5,6 +5,8 @@
 - Each package has its own tsconfig.json with NodeNext module resolution
 - All packages extend tsconfig.base.json for shared compiler options
 - Use .eslintrc.cjs for ESLint config (CommonJS for compatibility)
+- vitest is installed at root level with --passWithNoTests for packages without tests
+- Test files go in `src/__tests__/*.test.ts` within each package
 
 ---
 
@@ -73,4 +75,26 @@ Thread: https://ampcode.com/threads/T-019bc742-9da0-70fe-8f4c-58983031add0
   - Use `.js` extension in imports for ESM compatibility (e.g., `from './types.js'`)
   - All Figma-related types are in types.ts (FigmaNode, FigmaFill, FigmaEffect, etc.)
   - SentinelConfig defines the main configuration interface
+---
+
+## 2025-01-16 - US-004
+Thread: https://ampcode.com/threads/T-019bc744-c536-778b-98d7-6cd7342e9654
+- Migrated normalizer module from source to packages/core/src/normalizer.ts
+- Updated imports to use local types with .js extension
+- Exported normalizeNode, toStableJson, createNormalizer, NormalizerConfig from index.ts
+- Cloned and adapted 18 tests to packages/core/src/__tests__/normalizer.test.ts
+- Installed vitest at root level
+- Updated cli and action packages to use --passWithNoTests
+- All 18 normalizer tests pass
+- Typecheck passes
+- Files changed:
+  - packages/core/src/normalizer.ts (new)
+  - packages/core/src/__tests__/normalizer.test.ts (new)
+  - packages/core/src/index.ts (added normalizer exports)
+  - packages/cli/package.json (--passWithNoTests)
+  - packages/action/package.json (--passWithNoTests)
+  - package.json (added vitest)
+- **Learnings for future iterations:**
+  - Test assertions may need adjustment for sorted keys (color object keys sorted alphabetically)
+  - Use `describe` blocks from vitest for test organization
 ---

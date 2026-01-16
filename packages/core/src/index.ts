@@ -32,3 +32,6 @@ export {
   createNormalizer,
   type NormalizerConfig,
 } from './normalizer.js';
+
+// Parser exports
+export { parseFile, parseDirectives, parseDirectivesSync } from './parser.js';

@@ -25,6 +25,7 @@
   },
   "packageManager": "pnpm@9.0.0",
   "devDependencies": {
+    "@types/node": "^25.0.9",
     "@typescript-eslint/eslint-plugin": "^8.35.1",
     "@typescript-eslint/parser": "^8.35.1",
     "eslint": "^8.57.0",
