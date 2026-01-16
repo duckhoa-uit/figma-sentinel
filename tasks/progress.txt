@@ -13,6 +13,7 @@
 - Use vi.stubGlobal('fetch', ...) in Vitest to mock global fetch
 - Use fs.rmSync with { recursive: true, force: true } for test cleanup
 - Cannot spy on ESM exports (child_process.spawnSync) - avoid mocking or use vi.mock at module level
+- Use `while (conditionVar)` instead of `while (true)` to avoid ESLint no-constant-condition error
 
 ---
 
@@ -232,4 +233,26 @@ Thread: https://ampcode.com/threads/T-019bc75c-95db-7409-99e2-e48a5c755bb7
   - Markdown exporter optionally uses figma-extractor binary if available, otherwise falls back to built-in generation
   - extractColors, extractTypography, extractLayoutRules, extractCornerRadius, extractEffects are internal helpers
   - Use console.info for informational messages (not warnings/errors) about optional features
+---
+
+## 2025-01-16 - US-011
+Thread: https://ampcode.com/threads/T-019bc762-1157-700a-a4d4-13c9b1a186a6
+- Created runSentinel orchestrator in packages/core/src/sentinel.ts
+- Migrated from source index.ts, keeping only runSentinel function and types
+- Removed CLI main() function (will go in CLI package per US-014)
+- Added SentinelOptions.config parameter to allow passing config directly
+- Included inline config loading (minimal version - full Zod validation in US-012)
+- Exported runSentinel, SentinelResult, SentinelOptions, DEFAULT_CONFIG from index.ts
+- Created 23 comprehensive tests in packages/core/src/__tests__/sentinel.test.ts
+- All 185 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ + 18 image-exporter + 25 markdown-exporter + 23 sentinel)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/sentinel.ts (new)
+  - packages/core/src/__tests__/sentinel.test.ts (new)
+  - packages/core/src/index.ts (added sentinel exports)
+- **Learnings for future iterations:**
+  - runSentinel accepts config via options parameter OR loads from filesystem
+  - Use `while (continueSearch)` instead of `while (true)` to avoid ESLint no-constant-condition error
+  - SentinelResult includes changeResult, changelogPath, prBodyPath for CI integrations
+  - Integration tests mock fetch with vi.stubGlobal and create temp directories with fixture files
 ---
