@@ -523,6 +523,25 @@ Thread: https://ampcode.com/threads/T-019bc790-248f-72ba-b612-41b094fac7c9
   - Use pnpm changeset publish for monorepo package publishing
 ---
 
+## 2025-01-16 - US-025
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc794-6086-75bf-80af-9ac2b5140644
+- Created example workflow files for users to copy and customize
+- Created examples/workflows/scheduled-sync.yml for cron-based daily sync
+- Created examples/workflows/on-push-sync.yml for push-triggered sync with path filters
+- Created examples/workflows/manual-sync.yml for workflow_dispatch with configurable inputs
+- All workflows include detailed comments explaining each section
+- Features: PR creation, notifications, debug mode, artifact uploads, job summaries
+- Typecheck passes
+- Files changed:
+  - examples/workflows/scheduled-sync.yml (new)
+  - examples/workflows/on-push-sync.yml (new)
+  - examples/workflows/manual-sync.yml (new)
+- **Learnings for future iterations:**
+  - Use workflow_dispatch inputs for configurable manual triggers
+  - GITHUB_STEP_SUMMARY for rich job output
+  - Concurrency groups prevent overlapping runs
+---
+
 ## 2025-01-16 - US-024
 Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc792-06b0-74bd-9ca3-986bab809cf9
 - Created comprehensive README.md with project overview and features
