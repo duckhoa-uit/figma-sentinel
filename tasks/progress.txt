@@ -483,3 +483,21 @@ Thread: https://ampcode.com/threads/T-019bc78b-9a30-75de-b411-5878a369a4f8
   - github.context provides repo owner/name and event context (eventName, ref, payload)
   - PR creation skipped in dry-run mode for safety
 ---
+
+## 2025-01-16 - US-022
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc78e-991e-765a-b115-6a2593d37907
+- Created .github/workflows/ci.yml for automated CI testing
+- Runs on push to main and pull_request events
+- Uses pnpm/action-setup@v4 with pnpm 9
+- Uses setup-node@v4 with cache enabled
+- Build matrix: Node 18 and Node 20
+- Steps: checkout, setup pnpm, setup node, install, build, lint, typecheck, test
+- Added concurrency group to cancel in-progress runs on same ref
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - .github/workflows/ci.yml (new)
+- **Learnings for future iterations:**
+  - Use pnpm/action-setup@v4 for pnpm installation in GitHub Actions
+  - Use --frozen-lockfile for reproducible installs in CI
+  - Add concurrency group to avoid redundant CI runs
+---
