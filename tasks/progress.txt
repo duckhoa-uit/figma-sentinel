@@ -15,6 +15,9 @@
 - Cannot spy on ESM exports (child_process.spawnSync) - avoid mocking or use vi.mock at module level
 - Use `while (conditionVar)` instead of `while (true)` to avoid ESLint no-constant-condition error
 - Zod is used for config validation - use .partial() for optional fields and check unknown fields separately
+- CLI uses commander v12, ora v5, execa v5 (CJS compatible versions)
+- Core package uses `tsc --emitDeclarationOnly` for DTS generation (not tsup --dts) to work with project references
+- Build core package before CLI to ensure .d.ts files exist for type resolution
 
 ---
 
@@ -278,4 +281,27 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc767-8e73-72db-b41b-f7b2b
   - Unknown field validation must be done separately since Zod ignores unknown fields by default
   - Use `while (continueSearch)` pattern from config.ts findConfigFile (pattern already established)
   - Config module exports SentinelConfigSchema for programmatic validation
+---
+
+## 2025-01-16 - US-014
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc76f-81f7-757d-93ff-9d91dd451800
+- Implemented CLI sync command in packages/cli/src/commands/sync.ts
+- Uses ora spinner for 'Scanning for directives...', 'Fetching from Figma...', 'Detecting changes...'
+- Uses kleur for colorized success/error/warning messages
+- Supports --dry-run, --cwd, --config flags
+- Exit 0 on success, 1 on error
+- Fixed core package build to generate .d.ts files (added tsc --emitDeclarationOnly after tsup)
+- Added tsup as root devDependency
+- Typecheck passes, all 222 tests pass
+- Files changed:
+  - packages/cli/src/commands/sync.ts (new)
+  - packages/cli/src/index.ts (imports and uses syncCommand)
+  - packages/core/package.json (fixed DTS generation)
+  - package.json (added tsup devDependency)
+  - pnpm-lock.yaml
+- **Learnings for future iterations:**
+  - tsup DTS generation can fail with project references - use tsc --emitDeclarationOnly instead
+  - CLI packages need core package to be built first so .d.ts files exist
+  - Use ora v5 (not v6+) for CJS compatibility
+  - Suppress console output from core runSentinel when using spinners
 ---
