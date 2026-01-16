@@ -18,6 +18,7 @@
 - CLI uses commander v12, ora v5, execa v5 (CJS compatible versions)
 - Core package uses `tsc --emitDeclarationOnly` for DTS generation (not tsup --dts) to work with project references
 - Build core package before CLI to ensure .d.ts files exist for type resolution
+- CLI package: remove --dts from tsup build (CLI tools don't need .d.ts files)
 
 ---
 
@@ -343,4 +344,29 @@ Thread: https://ampcode.com/threads/T-019bc775-ea7c-701d-b8df-63861afe7414
   - Use ora spinner's warn() method for non-fatal warnings (FIGMA_TOKEN not set)
   - Suppress loadConfig's console.log by temporarily overriding console.log
   - Show detailed summary with file paths relative to cwd for better readability
+---
+
+## 2025-01-16 - US-016
+Thread: https://ampcode.com/threads/T-019bc778-ca3a-720a-b658-c6ad77ec9a79
+- Implemented CLI diff command in packages/cli/src/commands/diff.ts
+- Accepts node-id as positional argument with validation
+- Fetches current node from Figma API using fetchNodes from core
+- Loads existing spec from .design-specs using loadSpec from core
+- Displays side-by-side diff of properties with colors (kleur)
+- Uses diffSpecs, formatValue, formatPropertyPath from core for change detection
+- Highlights previous values in red, new values in green
+- Supports --file-key, --cwd, --config flags
+- Uses ora spinner for loading states
+- Removed --dts from CLI build script (CLI doesn't need type definitions)
+- Removed types field from CLI package.json
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - packages/cli/src/commands/diff.ts (new)
+  - packages/cli/src/index.ts (imports and uses diffCommand)
+  - packages/cli/package.json (removed --dts flag and types field)
+- **Learnings for future iterations:**
+  - CLI tools don't need .d.ts files, remove --dts from tsup build
+  - Use `const` for variables that are validated but not reassigned (prefer-const)
+  - Cast `unknown` node types to `Record<string, unknown>` for property iteration
+  - Use early return with null check for array index access to avoid TS18048 errors
 ---
