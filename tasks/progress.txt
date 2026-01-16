@@ -305,3 +305,19 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc76f-81f7-757d-93ff-9d91d
   - Use ora v5 (not v6+) for CJS compatibility
   - Suppress console output from core runSentinel when using spinners
 ---
+
+## 2025-01-16 - US-013
+Thread: https://ampcode.com/threads/T-019bc774-aec1-76eb-bca3-766d4cbba311
+- CLI package structure already complete from previous iterations (US-001, US-014)
+- Verified packages/cli/package.json has bin entry pointing to dist/index.js
+- Verified all required dependencies are present: commander, prompts, ora, kleur, cosmiconfig, fs-extra, execa
+- Verified @khoavhd/figma-sentinel-core workspace dependency is configured
+- Verified packages/cli/src/index.ts has shebang and commander setup
+- Typecheck passes
+- Files verified (no changes needed):
+  - packages/cli/package.json
+  - packages/cli/src/index.ts
+- **Learnings for future iterations:**
+  - CLI package was incrementally built across multiple stories
+  - US-001 created initial structure, US-014 added sync command and all dependencies
+---
