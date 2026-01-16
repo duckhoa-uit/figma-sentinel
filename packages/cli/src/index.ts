@@ -2,6 +2,7 @@
 
 import { Command } from 'commander';
 import { syncCommand } from './commands/sync.js';
+import { checkCommand } from './commands/check.js';
 
 const program = new Command();
 
@@ -27,8 +28,13 @@ program
 program
   .command('check')
   .description('Validate setup without making changes')
-  .action(() => {
-    console.log('check command - to be implemented in US-015');
+  .option('--cwd <dir>', 'Set working directory')
+  .option('--config <path>', 'Path to config file')
+  .action(async (options) => {
+    await checkCommand({
+      cwd: options.cwd,
+      config: options.config,
+    });
   });
 
 program
