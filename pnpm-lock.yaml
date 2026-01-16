@@ -48,14 +48,14 @@ importers:
         specifier: ^6.0.0
         version: 6.0.1
       '@khoavhd/figma-sentinel-core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: ^1.0.0
+        version: 1.0.0
 
   packages/cli:
     dependencies:
       '@khoavhd/figma-sentinel-core':
-        specifier: workspace:*
-        version: link:../core
+        specifier: ^1.0.0
+        version: 1.0.0
       commander:
         specifier: ^12.1.0
         version: 12.1.0
@@ -390,6 +390,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@khoavhd/figma-sentinel-core@1.0.0':
+    resolution: {integrity: sha512-t8Gu/GVvaKd3rz4WT/v89TXqU0pdaiHtVXYcxADVNkJvb/R3oWCiZRF7auJfBzPfEQXggCyxskZy4dWiBpBQhQ==}
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -2086,6 +2089,11 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@khoavhd/figma-sentinel-core@1.0.0':
+    dependencies:
+      fast-glob: 3.3.3
+      zod: 3.25.76
 
   '@manypkg/find-root@1.1.0':
     dependencies:
