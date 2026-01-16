@@ -30,6 +30,10 @@ inputs:
     description: 'Comma-separated labels to apply to the PR'
     required: false
     default: 'design-sync,automated'
+  pr-reviewers:
+    description: 'Comma-separated GitHub usernames to request review from'
+    required: false
+    default: ''
 
 outputs:
   has-changes:

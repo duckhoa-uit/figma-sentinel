@@ -3,18 +3,20 @@
 import * as core from '@actions/core';
 import * as path from 'path';
 import { runSentinel, loadConfig, mergeConfig, DEFAULT_CONFIG } from '@khoavhd/figma-sentinel-core';
+import { createOrUpdatePR, getCurrentBranch, getBaseBranch, parseLabels, parseReviewers } from './pr.js';
 
 async function run(): Promise<void> {
   try {
     core.info('Figma Sentinel Action starting...');
 
-    // Get inputs
+      // Get inputs
     const figmaToken = core.getInput('figma-token', { required: true });
     const configPath = core.getInput('config-path');
     const dryRun = core.getBooleanInput('dry-run');
     const createPr = core.getBooleanInput('create-pr');
-    const prTitle = core.getInput('pr-title');
+    const prTitle = core.getInput('pr-title') || 'chore: update Figma design specs';
     const prLabels = core.getInput('pr-labels');
+    const prReviewers = core.getInput('pr-reviewers');
 
     core.debug(`Config path: ${configPath}`);
     core.debug(`Dry run: ${dryRun}`);
@@ -98,16 +100,39 @@ async function run(): Promise<void> {
       core.info('No design changes detected');
     }
 
-    // PR creation will be handled in US-021
-    // For now, set empty PR outputs
-    core.setOutput('pr-number', '');
-    core.setOutput('pr-url', '');
+    // PR creation
+    if (createPr && hasChanges && !dryRun) {
+      core.info('Creating/updating PR with design changes...');
+      try {
+        const prResult = await createOrUpdatePR({
+          title: prTitle,
+          labels: parseLabels(prLabels),
+          reviewers: parseReviewers(prReviewers),
+          branchName: getCurrentBranch(),
+          baseBranch: getBaseBranch(),
+          prBodyPath: result.prBodyPath,
+        });
 
-    // Store PR configuration in outputs for potential use by subsequent steps
-    if (createPr && hasChanges) {
-      core.info('PR creation requested - will be handled in next action step');
-      core.debug(`PR Title: ${prTitle}`);
-      core.debug(`PR Labels: ${prLabels}`);
+        core.setOutput('pr-number', prResult.prNumber.toString());
+        core.setOutput('pr-url', prResult.prUrl);
+
+        if (prResult.created) {
+          core.info(`Created PR #${prResult.prNumber}: ${prResult.prUrl}`);
+        } else {
+          core.info(`Updated PR #${prResult.prNumber}: ${prResult.prUrl}`);
+        }
+      } catch (error) {
+        core.warning(`Failed to create/update PR: ${error}`);
+        core.setOutput('pr-number', '');
+        core.setOutput('pr-url', '');
+      }
+    } else {
+      core.setOutput('pr-number', '');
+      core.setOutput('pr-url', '');
+
+      if (createPr && hasChanges && dryRun) {
+        core.info('PR creation skipped (dry-run mode)');
+      }
     }
 
     core.info('Figma Sentinel Action completed successfully');
