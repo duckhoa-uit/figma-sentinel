@@ -35,6 +35,7 @@ import {
   type ImageExportResult,
 } from './image-exporter.js';
 import { exportSpecsAsMarkdown, removeMarkdownSpec } from './markdown-exporter.js';
+import { loadConfig, type LoadConfigResult } from './config.js';
 
 /**
  * Result of running the Sentinel workflow.
@@ -61,101 +62,6 @@ export interface SentinelOptions {
 }
 
 /**
- * Default configuration values for React projects.
- */
-export const DEFAULT_CONFIG: SentinelConfig = {
-  filePatterns: ['src/**/*.tsx', 'src/**/*.jsx'],
-  excludePatterns: ['**/*.test.*', '**/*.spec.*', '**/node_modules/**'],
-  specsDir: '.design-specs',
-  exportImages: true,
-  imageScale: 2,
-  outputFormat: 'json',
-};
-
-/**
- * Configuration file names to search for, in priority order.
- */
-const CONFIG_FILE_NAMES = [
-  'figma-sentinel.config.js',
-  '.figma-sentinelrc.json',
-] as const;
-
-/**
- * Finds a configuration file in the given directory or its parents.
- */
-function findConfigFile(startDir: string): string | null {
-  let currentDir = path.resolve(startDir);
-  let continueSearch = true;
-
-  while (continueSearch) {
-    for (const fileName of CONFIG_FILE_NAMES) {
-      const configPath = path.join(currentDir, fileName);
-      if (fs.existsSync(configPath)) {
-        return configPath;
-      }
-    }
-
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) {
-      continueSearch = false;
-    } else {
-      currentDir = parentDir;
-    }
-  }
-
-  return null;
-}
-
-/**
- * Loads configuration from file system.
- * This is a minimal inline version - a full config module with Zod validation
- * will be added in a future story.
- */
-function loadConfigFromDir(startDir: string): {
-  config: SentinelConfig;
-  configPath: string | null;
-} {
-  const configPath = findConfigFile(startDir);
-
-  if (!configPath) {
-    return { config: { ...DEFAULT_CONFIG }, configPath: null };
-  }
-
-  try {
-    let rawConfig: Partial<SentinelConfig>;
-
-    if (configPath.endsWith('.js')) {
-      // Clear require cache to ensure fresh load
-      delete require.cache[require.resolve(configPath)];
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const loaded = require(configPath);
-      rawConfig = loaded.default || loaded;
-    } else {
-      const content = fs.readFileSync(configPath, 'utf-8');
-      rawConfig = JSON.parse(content);
-    }
-
-    // Merge with defaults
-    const config: SentinelConfig = {
-      filePatterns: rawConfig.filePatterns ?? DEFAULT_CONFIG.filePatterns,
-      excludePatterns:
-        rawConfig.excludePatterns ?? DEFAULT_CONFIG.excludePatterns,
-      specsDir: rawConfig.specsDir ?? DEFAULT_CONFIG.specsDir,
-      exportImages: rawConfig.exportImages ?? DEFAULT_CONFIG.exportImages,
-      imageScale: rawConfig.imageScale ?? DEFAULT_CONFIG.imageScale,
-      outputFormat: rawConfig.outputFormat ?? DEFAULT_CONFIG.outputFormat,
-      includeProperties: rawConfig.includeProperties,
-      excludeProperties: rawConfig.excludeProperties,
-    };
-
-    return { config, configPath };
-  } catch {
-    // If config loading fails, use defaults
-    return { config: { ...DEFAULT_CONFIG }, configPath: null };
-  }
-}
-
-/**
  * Main entry point for the Figma Design Sentinel.
  * Orchestrates the full workflow from parsing to changelog generation.
  */
@@ -176,7 +82,7 @@ export async function runSentinel(
     console.log('Using provided configuration');
   } else {
     try {
-      const { config: loadedConfig, configPath } = loadConfigFromDir(cwd);
+      const { config: loadedConfig, configPath }: LoadConfigResult = loadConfig(cwd);
       config = loadedConfig;
       if (configPath) {
         console.log(`Using config from: ${configPath}`);

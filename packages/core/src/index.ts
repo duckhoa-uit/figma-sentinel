@@ -106,7 +106,22 @@ export {
 // Sentinel orchestrator exports
 export {
   runSentinel,
-  DEFAULT_CONFIG,
   type SentinelResult,
   type SentinelOptions,
 } from './sentinel.js';
+
+// Config exports
+export {
+  DEFAULT_CONFIG,
+  validateConfig,
+  loadConfig,
+  loadConfigFromFile,
+  mergeConfig,
+  createDefaultConfigFile,
+  formatValidationErrors,
+  SentinelConfigSchema,
+  PartialSentinelConfigSchema,
+  type PartialSentinelConfig,
+  type ConfigValidationError,
+  type LoadConfigResult,
+} from './config.js';
