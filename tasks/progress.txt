@@ -126,4 +126,27 @@ Thread: https://ampcode.com/threads/T-019bc748-28f4-7289-915a-1d77290e8186
   - Use ESM import style for fast-glob: `import fg from 'fast-glob'`
   - Test fixtures go in src/__tests__/fixtures/ directory
   - Use vi.spyOn() and vi.restoreAllMocks() for console mocking in vitest
+- JSON fixture files can be loaded with fs.readFileSync in tests
+- Rate limit tests need increased timeout (10000ms, 30000ms) due to retry backoff
+---
+
+## 2025-01-16 - US-006
+Thread: https://ampcode.com/threads/T-019bc74d-b5b9-7504-8226-6b7910d086c1
+- Migrated figma-client module from source to packages/core/src/figma-client.ts
+- Updated imports to use local types with .js extension
+- Uses native fetch (Node 18+) with exponential backoff for rate limiting
+- Exported fetchNodes, FetchedNode, FetchResult, FetchError from index.ts
+- Created sample-node.json fixture in src/__tests__/fixtures/
+- Adapted 12 tests to packages/core/src/__tests__/figma-client.test.ts (vitest)
+- All 44 tests pass (18 normalizer + 14 parser + 12 figma-client)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/figma-client.ts (new)
+  - packages/core/src/__tests__/figma-client.test.ts (new)
+  - packages/core/src/__tests__/fixtures/sample-node.json (new)
+  - packages/core/src/index.ts (added figma-client exports)
+- **Learnings for future iterations:**
+  - Use fileURLToPath and path.dirname for __dirname equivalent in ESM
+  - Rate limit retry tests need increased timeout due to actual sleep delays
+  - Mock fetch with vi.fn().mockResolvedValue/mockRejectedValue in vitest
 ---

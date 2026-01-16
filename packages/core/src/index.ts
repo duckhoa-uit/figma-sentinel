@@ -43,3 +43,19 @@ export {
   type FetchResult,
   type FetchError,
 } from './figma-client.js';
+
+// Storage exports
+export {
+  createNormalizedSpec,
+  saveSpec,
+  loadSpec,
+  loadAllSpecs,
+  detectChanges,
+  saveAndDetectChanges,
+  removeSpec,
+  sanitizeNodeId,
+  getSpecFilePath,
+  computeContentHash,
+  getPreviousSpec,
+  type SaveAndDetectInput,
+} from './storage.js';
