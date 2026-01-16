@@ -20,6 +20,9 @@
 - Build core package before CLI to ensure .d.ts files exist for type resolution
 - CLI package: remove --dts from tsup build (CLI tools don't need .d.ts files)
 - CLI config: use resolveConfig(cwd, configPath?) from cli/config.ts for unified config loading with cosmiconfig
+- loadConfig() returns { config, configPath } not the config directly
+- ChangeDetectionResult has `changed` property not `modified`
+- SentinelResult.changeResult may be undefined - use nullish coalescing for safety
 
 ---
 
@@ -436,4 +439,23 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc784-ef31-7217-84de-38b45
   - Use node20 as the runtime (LTS version)
   - @actions/core provides getInput, setOutput, setFailed, exportVariable
   - Action package should include action.yml in files array for npm publishing
+---
+
+## 2025-01-16 - US-020
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc788-66f4-75da-861e-6c24411aecf7
+- Implemented GitHub Action main script in packages/action/src/index.ts
+- Fixed TypeScript errors: loadConfig returns LoadConfigResult with .config property
+- Fixed ChangeDetectionResult usage: uses `changed` not `modified`, and may be undefined
+- Uses @actions/core getInput/setOutput for input/output handling
+- Sets FIGMA_TOKEN from input to environment via core.exportVariable
+- Calls runSentinel from core package with config and dryRun options
+- Sets outputs: has-changes (boolean as string), changelog-path
+- Uses core.setFailed on errors for proper GitHub Actions error handling
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - packages/action/src/index.ts (fixed type errors)
+- **Learnings for future iterations:**
+  - loadConfig() returns { config, configPath } not the config directly
+  - ChangeDetectionResult has `changed` property not `modified`
+  - SentinelResult.changeResult may be undefined - use nullish coalescing for safety
 ---
