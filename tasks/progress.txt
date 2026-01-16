@@ -150,3 +150,22 @@ Thread: https://ampcode.com/threads/T-019bc74d-b5b9-7504-8226-6b7910d086c1
   - Rate limit retry tests need increased timeout due to actual sleep delays
   - Mock fetch with vi.fn().mockResolvedValue/mockRejectedValue in vitest
 ---
+
+## 2025-01-16 - US-007
+Thread: https://ampcode.com/threads/T-019bc750-7e00-74f0-ab11-4cba1987aa46
+- Migrated storage module from source to packages/core/src/storage.ts
+- Updated imports to use local types with .js extension and local normalizer
+- Exported createNormalizedSpec, saveSpec, loadSpec, loadAllSpecs, detectChanges and more from index.ts
+- Created 29 unit tests in packages/core/src/__tests__/storage.test.ts
+- All 73 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/storage.ts (new)
+  - packages/core/src/__tests__/storage.test.ts (new)
+  - packages/core/src/index.ts (added storage exports)
+- **Learnings for future iterations:**
+  - Storage uses fs.mkdtempSync for temp directories in tests
+  - Use fs.rmSync with { recursive: true, force: true } for cleanup
+  - COMPONENT_SET type nodes have variants extracted as nested specs
+  - Content hash uses SHA-256 truncated to 16 chars
+---

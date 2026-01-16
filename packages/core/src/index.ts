@@ -59,3 +59,22 @@ export {
   getPreviousSpec,
   type SaveAndDetectInput,
 } from './storage.js';
+
+// Differ exports
+export {
+  generateChangelogEntries,
+  generateChangelogMarkdown,
+  generatePRBody,
+  diffSpecs,
+  diffVariants,
+  formatValue,
+  formatColor,
+  formatPropertyPath,
+  getRelativeImagePath,
+  getRelativePreviousImagePath,
+  attachImagePaths,
+  writeChangelog,
+  generateChangelog,
+  type ExportedImage,
+  type ImageExportResult,
+} from './differ.js';
