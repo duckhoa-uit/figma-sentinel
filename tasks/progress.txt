@@ -55,3 +55,22 @@ Thread: https://ampcode.com/threads/T-019bc740-0b20-7285-8050-c20bbf08cb4e
   - composite: true required in package tsconfigs for project references
   - cli and action packages reference core package
 ---
+
+## 2025-01-16 - US-003
+Thread: https://ampcode.com/threads/T-019bc742-9da0-70fe-8f4c-58983031add0
+- Created core package types by cloning types.ts from source repository
+- Exported all types: FigmaDirective, FigmaNode, NormalizedSpec, ChangelogEntry, SentinelConfig, etc.
+- Updated packages/core/src/index.ts to re-export all types
+- Added zod and fast-glob as dependencies in packages/core/package.json
+- Package.json exports already configured for ESM and CommonJS (from US-001)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/types.ts (new)
+  - packages/core/src/index.ts (updated)
+  - packages/core/package.json (added dependencies)
+  - pnpm-lock.yaml
+- **Learnings for future iterations:**
+  - Use `.js` extension in imports for ESM compatibility (e.g., `from './types.js'`)
+  - All Figma-related types are in types.ts (FigmaNode, FigmaFill, FigmaEffect, etc.)
+  - SentinelConfig defines the main configuration interface
+---

@@ -24,3 +24,11 @@ export type {
   FigmaApiImagesResponse,
   FetchRequest,
 } from './types.js';
+
+// Normalizer exports
+export {
+  normalizeNode,
+  toStableJson,
+  createNormalizer,
+  type NormalizerConfig,
+} from './normalizer.js';
