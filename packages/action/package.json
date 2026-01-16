@@ -1,0 +1,28 @@
+{
+  "name": "@khoavhd/figma-sentinel-action",
+  "version": "1.0.0",
+  "description": "GitHub Action for Figma Sentinel - Automated design sync and PR creation",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "action.yml"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "figma",
+    "github-action",
+    "design-ops"
+  ],
+  "author": "khoavhd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khoavhd/figma-sentinel.git",
+    "directory": "packages/action"
+  }
+}

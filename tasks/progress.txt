@@ -1,0 +1,29 @@
+## Codebase Patterns
+- Use `pnpm run typecheck` from root to validate all packages
+- Package structure: packages/core, packages/cli, packages/action
+- Package names: @khoavhd/figma-sentinel-core, @khoavhd/figma-sentinel, @khoavhd/figma-sentinel-action
+- Each package has its own tsconfig.json with NodeNext module resolution
+
+---
+
+## 2025-01-16 - US-001
+Thread: https://ampcode.com/threads/T-019bc73e-0148-701b-a29b-9e83ca62e2ad
+- Initialized monorepo with pnpm workspaces
+- Created root package.json with build, test, lint, typecheck scripts
+- Created pnpm-workspace.yaml with packages: ['packages/*']
+- Created packages/core, packages/cli, packages/action with package.json files
+- Added MIT LICENSE file
+- Added basic tsconfig.json for each package
+- Typecheck passes
+- Files changed:
+  - package.json
+  - pnpm-workspace.yaml
+  - LICENSE
+  - packages/core/package.json, packages/core/src/index.ts, packages/core/tsconfig.json
+  - packages/cli/package.json, packages/cli/src/index.ts, packages/cli/tsconfig.json
+  - packages/action/package.json, packages/action/src/index.ts, packages/action/tsconfig.json
+- **Learnings for future iterations:**
+  - tsup is used for building packages (ESM/CJS with dts)
+  - vitest is used for testing
+  - TypeScript devDependency is installed at root level
+---

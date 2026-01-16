@@ -1,0 +1,27 @@
+{
+  "name": "figma-sentinel-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo for Figma Sentinel - Design change tracking and automated PR creation",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "keywords": [
+    "figma",
+    "design-ops",
+    "design-tokens",
+    "automation"
+  ],
+  "author": "khoavhd",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

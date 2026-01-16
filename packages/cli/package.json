@@ -1,0 +1,30 @@
+{
+  "name": "@khoavhd/figma-sentinel",
+  "version": "1.0.0",
+  "description": "CLI for Figma Sentinel - Design change tracking and automated sync",
+  "bin": {
+    "figma-sentinel": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "figma",
+    "cli",
+    "design-ops"
+  ],
+  "author": "khoavhd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khoavhd/figma-sentinel.git",
+    "directory": "packages/cli"
+  }
+}

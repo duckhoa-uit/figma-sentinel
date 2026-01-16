@@ -1,0 +1,35 @@
+{
+  "name": "@khoavhd/figma-sentinel-core",
+  "version": "1.0.0",
+  "description": "Core library for Figma Sentinel - Design change tracking",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "figma",
+    "design-ops",
+    "core"
+  ],
+  "author": "khoavhd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/khoavhd/figma-sentinel.git",
+    "directory": "packages/core"
+  }
+}
