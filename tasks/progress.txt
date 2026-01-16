@@ -415,3 +415,25 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc781-2739-7348-ae24-ff4c5
   - Cache implementation uses module-level variables (simple but effective for CLI)
   - resolveConfig(cwd, configPath?) provides unified API for commands
 ---
+
+## 2025-01-16 - US-019
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc784-ef31-7217-84de-38b45fc8b55e
+- Created GitHub Action structure in packages/action/action.yml
+- Defined action metadata with name, description, branding (layers icon, purple color)
+- Added inputs: figma-token (required), config-path, dry-run, create-pr, pr-title, pr-labels
+- Added outputs: has-changes, changelog-path, pr-number, pr-url
+- Added dependencies: @actions/core, @actions/github, @actions/exec, @khoavhd/figma-sentinel-core
+- Updated src/index.ts with placeholder implementation using @actions/core
+- Uses node20 runtime for GitHub Actions
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - packages/action/action.yml (new)
+  - packages/action/package.json (added dependencies)
+  - packages/action/src/index.ts (updated with @actions/core usage)
+  - pnpm-lock.yaml
+- **Learnings for future iterations:**
+  - GitHub Actions use action.yml at package root to define inputs/outputs
+  - Use node20 as the runtime (LTS version)
+  - @actions/core provides getInput, setOutput, setFailed, exportVariable
+  - Action package should include action.yml in files array for npm publishing
+---
