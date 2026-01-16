@@ -321,3 +321,26 @@ Thread: https://ampcode.com/threads/T-019bc774-aec1-76eb-bca3-766d4cbba311
   - CLI package was incrementally built across multiple stories
   - US-001 created initial structure, US-014 added sync command and all dependencies
 ---
+
+## 2025-01-16 - US-015
+Thread: https://ampcode.com/threads/T-019bc775-ea7c-701d-b8df-63861afe7414
+- Implemented CLI check command in packages/cli/src/commands/check.ts
+- Uses ora spinner for checking FIGMA_TOKEN, configuration, and scanning directives
+- Uses kleur for colorized success/error/warning messages
+- Checks for config file existence and validity using core's validateConfig
+- Checks for FIGMA_TOKEN environment variable (warns if not set)
+- Parses directives and reports count without fetching from Figma
+- Displays summary: X files with directives, Y total nodes, Z unique Figma files
+- Shows detailed file list with file keys and node IDs
+- Supports --cwd, --config flags
+- Exit 0 on success, 1 on warnings/errors
+- Typecheck passes, all 222 tests pass
+- Files changed:
+  - packages/cli/src/commands/check.ts (new)
+  - packages/cli/src/index.ts (imports and uses checkCommand)
+- **Learnings for future iterations:**
+  - CLI check command provides dry-run validation without Figma API calls
+  - Use ora spinner's warn() method for non-fatal warnings (FIGMA_TOKEN not set)
+  - Suppress loadConfig's console.log by temporarily overriding console.log
+  - Show detailed summary with file paths relative to cwd for better readability
+---
