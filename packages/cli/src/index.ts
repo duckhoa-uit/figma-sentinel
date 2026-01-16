@@ -3,6 +3,7 @@
 import { Command } from 'commander';
 import { syncCommand } from './commands/sync.js';
 import { checkCommand } from './commands/check.js';
+import { diffCommand } from './commands/diff.js';
 
 const program = new Command();
 
@@ -40,9 +41,15 @@ program
 program
   .command('diff <node-id>')
   .description('Debug specific node changes')
-  .option('--file-key <key>', 'Figma file key')
-  .action(() => {
-    console.log('diff command - to be implemented in US-016');
+  .option('--file-key <key>', 'Figma file key (required)')
+  .option('--cwd <dir>', 'Set working directory')
+  .option('--config <path>', 'Path to config file')
+  .action(async (nodeId, options) => {
+    await diffCommand(nodeId, {
+      fileKey: options.fileKey,
+      cwd: options.cwd,
+      config: options.config,
+    });
   });
 
 program
