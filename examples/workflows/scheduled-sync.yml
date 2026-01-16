@@ -1,0 +1,67 @@
+# Scheduled Figma Design Sync Workflow
+# This workflow syncs design specs from Figma on a daily schedule.
+# Perfect for teams that want to automatically track design changes
+# without manual intervention.
+
+name: Scheduled Figma Sync
+
+# Schedule-based trigger - runs automatically at specified times
+on:
+  schedule:
+    # Runs every day at 6:00 AM UTC (adjust for your timezone)
+    # Format: minute hour day-of-month month day-of-week
+    - cron: '0 6 * * *'
+
+  # Allow manual trigger from GitHub UI for testing
+  workflow_dispatch:
+
+# Prevent multiple runs from overlapping
+concurrency:
+  group: figma-sync
+  cancel-in-progress: false  # Don't cancel - scheduled runs should complete
+
+jobs:
+  sync:
+    name: Sync Figma Designs
+    runs-on: ubuntu-latest
+
+    # Required permissions for creating PRs
+    permissions:
+      contents: write        # Push changes to repository
+      pull-requests: write   # Create and update PRs
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Run Figma Sentinel to detect and sync design changes
+      - name: Sync Figma designs
+        uses: khoavhd/figma-sentinel-action@v1
+        with:
+          # Required: Your Figma API token (store as repository secret)
+          figma-token: ${{ secrets.FIGMA_TOKEN }}
+
+          # Enable automatic PR creation for changes
+          create-pr: true
+
+          # PR settings
+          pr-title: '🎨 Design Sync: Automated update from Figma'
+          pr-labels: 'design,automated,figma-sync'
+
+        # Make GitHub token available for PR creation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Optional - Notify team on Slack/Discord when changes are detected
+      # Uncomment and configure for your notification service
+      # - name: Notify on changes
+      #   if: steps.sync.outputs.has-changes == 'true'
+      #   uses: slackapi/slack-github-action@v1
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "🎨 Figma design changes detected! PR: ${{ steps.sync.outputs.pr-url }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

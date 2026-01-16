@@ -522,3 +522,22 @@ Thread: https://ampcode.com/threads/T-019bc790-248f-72ba-b612-41b094fac7c9
   - id-token: write permission needed for npm provenance
   - Use pnpm changeset publish for monorepo package publishing
 ---
+
+## 2025-01-16 - US-024
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc792-06b0-74bd-9ca3-986bab809cf9
+- Created comprehensive README.md with project overview and features
+- Added Installation section covering npm, pnpm, and GitHub Action
+- Added Quick Start guide with directive syntax examples
+- Added Configuration section with all options and defaults table
+- Added CLI Commands section (sync, check, init, diff) with examples
+- Added GitHub Action Usage with basic and advanced workflow examples
+- Added Programmatic Usage section for core library
+- Added Output Structure section explaining .design-specs directory layout
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - README.md (new)
+- **Learnings for future iterations:**
+  - README structure follows: Overview → Features → Installation → Quick Start → Configuration → CLI → Action → Programmatic → Output → Contributing → License
+  - Use tables for configuration options and action inputs/outputs for clarity
+  - Include code examples for all major features
+---

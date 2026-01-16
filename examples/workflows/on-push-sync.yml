@@ -1,0 +1,81 @@
+# Push-triggered Figma Design Sync Workflow
+# This workflow syncs design specs when code is pushed to the main branch.
+# Useful for ensuring design specs stay in sync when developers add
+# new @figma-node directives to the codebase.
+
+name: On Push Figma Sync
+
+# Trigger on push to main/develop branches
+on:
+  push:
+    branches:
+      - main
+      - develop
+    # Only run when source files change (not on config/doc changes)
+    paths:
+      - 'src/**'
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+
+# Prevent multiple syncs from running simultaneously
+concurrency:
+  group: figma-sync-${{ github.ref }}
+  cancel-in-progress: true  # Cancel previous run if new push comes in
+
+jobs:
+  sync:
+    name: Sync Figma Designs
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      # Step 1: Check out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history to enable proper diff detection
+          fetch-depth: 0
+
+      # Step 2: Run Figma Sentinel
+      - name: Sync Figma designs
+        id: sync
+        uses: khoavhd/figma-sentinel-action@v1
+        with:
+          figma-token: ${{ secrets.FIGMA_TOKEN }}
+          create-pr: true
+          pr-title: '🎨 Design Sync: Update specs after code changes'
+          pr-labels: 'design,automated'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Add PR reviewers automatically (optional)
+      - name: Request reviewers
+        if: steps.sync.outputs.has-changes == 'true' && steps.sync.outputs.pr-number != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Add design team as reviewers
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.sync.outputs.pr-number }},
+              reviewers: ['design-lead', 'frontend-lead']  // Update with your team members
+            });
+
+      # Step 4: Summary output
+      - name: Job Summary
+        run: |
+          echo "## Figma Sync Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.sync.outputs.has-changes }}" == "true" ]; then
+            echo "✅ Design changes detected and synced" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **PR URL**: ${{ steps.sync.outputs.pr-url }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Changelog**: \`${{ steps.sync.outputs.changelog-path }}\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No design changes detected" >> $GITHUB_STEP_SUMMARY
+          fi

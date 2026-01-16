@@ -1,0 +1,125 @@
+# Manual Figma Design Sync Workflow
+# This workflow can be triggered manually from the GitHub Actions UI.
+# Provides full control over sync options via workflow dispatch inputs.
+# Perfect for on-demand syncs, testing, and debugging.
+
+name: Manual Figma Sync
+
+# Manual trigger with configurable inputs
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run mode (no changes saved)'
+        type: boolean
+        default: false
+        required: false
+
+      create-pr:
+        description: 'Create a Pull Request for changes'
+        type: boolean
+        default: true
+        required: false
+
+      pr-title:
+        description: 'Custom PR title (if creating PR)'
+        type: string
+        default: '🎨 Design Sync: Manual update from Figma'
+        required: false
+
+      config-path:
+        description: 'Path to config file (optional)'
+        type: string
+        default: ''
+        required: false
+
+      debug:
+        description: 'Enable debug logging'
+        type: boolean
+        default: false
+        required: false
+
+jobs:
+  sync:
+    name: Manual Figma Sync
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      # Step 1: Check out repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Enable debug logging if requested
+      - name: Enable debug mode
+        if: ${{ inputs.debug }}
+        run: echo "ACTIONS_STEP_DEBUG=true" >> $GITHUB_ENV
+
+      # Step 3: Display current configuration
+      - name: Show configuration
+        run: |
+          echo "## Sync Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dry Run | ${{ inputs.dry-run }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Create PR | ${{ inputs.create-pr }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| PR Title | ${{ inputs.pr-title }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Config Path | ${{ inputs.config-path || 'default' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Debug | ${{ inputs.debug }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+      # Step 4: Run Figma Sentinel with configured options
+      - name: Sync Figma designs
+        id: sync
+        uses: khoavhd/figma-sentinel-action@v1
+        with:
+          figma-token: ${{ secrets.FIGMA_TOKEN }}
+          config-path: ${{ inputs.config-path }}
+          dry-run: ${{ inputs.dry-run }}
+          create-pr: ${{ inputs.create-pr }}
+          pr-title: ${{ inputs.pr-title }}
+          pr-labels: 'design,manual-sync'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 5: Report results
+      - name: Report results
+        run: |
+          echo "## Sync Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ inputs.dry-run }}" == "true" ]; then
+            echo "🔍 **Dry run mode** - No changes were saved" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.sync.outputs.has-changes }}" == "true" ]; then
+            echo "### ✅ Design Changes Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "${{ steps.sync.outputs.pr-url }}" != "" ]; then
+              echo "- **Pull Request**: ${{ steps.sync.outputs.pr-url }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **PR Number**: #${{ steps.sync.outputs.pr-number }}" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            if [ "${{ steps.sync.outputs.changelog-path }}" != "" ]; then
+              echo "- **Changelog**: \`${{ steps.sync.outputs.changelog-path }}\`" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "### ℹ️ No Design Changes" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All design specs are up to date with Figma." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # Step 6: Upload changelog as artifact (useful for debugging)
+      - name: Upload changelog artifact
+        if: steps.sync.outputs.changelog-path != '' && steps.sync.outputs.has-changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-changelog
+          path: ${{ steps.sync.outputs.changelog-path }}
+          retention-days: 7
