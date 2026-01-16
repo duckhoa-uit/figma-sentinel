@@ -19,6 +19,7 @@
 - Core package uses `tsc --emitDeclarationOnly` for DTS generation (not tsup --dts) to work with project references
 - Build core package before CLI to ensure .d.ts files exist for type resolution
 - CLI package: remove --dts from tsup build (CLI tools don't need .d.ts files)
+- CLI config: use resolveConfig(cwd, configPath?) from cli/config.ts for unified config loading with cosmiconfig
 
 ---
 
@@ -390,4 +391,27 @@ Thread: https://ampcode.com/threads/T-019bc77e-682e-71ff-9eaa-fbdf80087c55
   - prompts library allows select, text, confirm, number prompt types
   - Always check if config file exists before creating to avoid accidental overwrites
   - Use <keyof AnswerType> generic with prompts for type safety
+---
+
+## 2025-01-16 - US-018
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc781-2739-7348-ae24-ff4c55571e8b
+- Implemented cosmiconfig loader in packages/cli/src/config.ts
+- Uses cosmiconfig with moduleName 'figma-sentinel' for flexible config search
+- Supports: package.json (figma-sentinel key), .figma-sentinelrc*, figma-sentinel.config.js/cjs
+- Merges loaded config with defaults from core using mergeConfig
+- Validates configuration with Zod schema from core using validateConfig
+- Implements config caching for performance within single CLI run (clearConfigCache to reset)
+- Updated sync, check, diff commands to use new resolveConfig function
+- Removed manual config loading code from commands (cleaner and more consistent)
+- All 222 tests pass, typecheck passes
+- Files changed:
+  - packages/cli/src/config.ts (new)
+  - packages/cli/src/commands/sync.ts (uses resolveConfig)
+  - packages/cli/src/commands/check.ts (simplified, uses resolveConfig)
+  - packages/cli/src/commands/diff.ts (uses resolveConfig)
+- **Learnings for future iterations:**
+  - cosmiconfig v9 uses named exports: `import { cosmiconfig } from 'cosmiconfig'`
+  - Use CosmiconfigResult type from cosmiconfig for type-safe result handling
+  - Cache implementation uses module-level variables (simple but effective for CLI)
+  - resolveConfig(cwd, configPath?) provides unified API for commands
 ---

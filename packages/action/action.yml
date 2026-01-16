@@ -1,0 +1,46 @@
+name: 'Figma Sentinel'
+description: 'Sync Figma design specs to your codebase and create PRs for design changes'
+author: 'khoavhd'
+
+branding:
+  icon: 'layers'
+  color: 'purple'
+
+inputs:
+  figma-token:
+    description: 'Figma API personal access token'
+    required: true
+  config-path:
+    description: 'Path to figma-sentinel config file'
+    required: false
+    default: ''
+  dry-run:
+    description: 'Run without making changes (preview only)'
+    required: false
+    default: 'false'
+  create-pr:
+    description: 'Create or update a PR with changes'
+    required: false
+    default: 'false'
+  pr-title:
+    description: 'Title for the PR (when create-pr is true)'
+    required: false
+    default: 'chore: update Figma design specs'
+  pr-labels:
+    description: 'Comma-separated labels to apply to the PR'
+    required: false
+    default: 'design-sync,automated'
+
+outputs:
+  has-changes:
+    description: 'Whether any design changes were detected'
+  changelog-path:
+    description: 'Path to the generated changelog file'
+  pr-number:
+    description: 'The number of the created/updated PR (if create-pr is true)'
+  pr-url:
+    description: 'The URL of the created/updated PR (if create-pr is true)'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
