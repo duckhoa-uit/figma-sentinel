@@ -169,3 +169,23 @@ Thread: https://ampcode.com/threads/T-019bc750-7e00-74f0-ab11-4cba1987aa46
   - COMPONENT_SET type nodes have variants extracted as nested specs
   - Content hash uses SHA-256 truncated to 16 chars
 ---
+
+## 2025-01-16 - US-008
+Thread: https://ampcode.com/threads/T-019bc753-9842-776f-a985-6ef6ee4f37aa
+- Migrated differ module from source to packages/core/src/differ.ts
+- Updated imports to use local types with .js extension and local storage module
+- Exported generateChangelogEntries, generateChangelogMarkdown, generatePRBody, diffSpecs, diffVariants, formatValue, formatColor, formatPropertyPath, getRelativeImagePath, getRelativePreviousImagePath, attachImagePaths, writeChangelog, generateChangelog from index.ts
+- Added ExportedImage and ImageExportResult types to differ.ts (minimal interface for attachImagePaths)
+- Created 46 comprehensive tests in packages/core/src/__tests__/differ.test.ts
+- All 119 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/differ.ts (new)
+  - packages/core/src/__tests__/differ.test.ts (new)
+  - packages/core/src/index.ts (added differ exports)
+- **Learnings for future iterations:**
+  - No source test file existed for differ - created comprehensive tests from scratch
+  - ExportedImage/ImageExportResult types defined locally in differ.ts to avoid circular dependency with image-exporter
+  - formatColor outputs uppercase hex with optional opacity percentage
+  - formatPropertyPath transforms technical paths to human-readable labels (fills -> Fill, fontSize -> font size)
+---
