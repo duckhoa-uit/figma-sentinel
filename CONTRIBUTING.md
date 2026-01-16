@@ -14,7 +14,7 @@ Thank you for your interest in contributing to Figma Sentinel! This document pro
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/khoavhd/figma-sentinel.git
+   git clone https://github.com/duckhoa-uit/figma-sentinel.git
    cd figma-sentinel
    ```
 

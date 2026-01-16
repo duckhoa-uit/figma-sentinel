@@ -25,11 +25,11 @@
     "design-ops",
     "core"
   ],
-  "author": "khoavhd",
+  "author": "duckhoa-uit",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/khoavhd/figma-sentinel.git",
+    "url": "https://github.com/duckhoa-uit/figma-sentinel.git",
     "directory": "packages/core"
   },
   "dependencies": {

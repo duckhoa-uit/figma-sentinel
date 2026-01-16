@@ -21,7 +21,7 @@
     "design-tokens",
     "automation"
   ],
-  "author": "khoavhd",
+  "author": "duckhoa-uit",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"

@@ -75,7 +75,7 @@ jobs:
       # Step 4: Run Figma Sentinel with configured options
       - name: Sync Figma designs
         id: sync
-        uses: khoavhd/figma-sentinel-action@v1
+        uses: duckhoa-uit/figma-sentinel@v1
         with:
           figma-token: ${{ secrets.FIGMA_TOKEN }}
           config-path: ${{ inputs.config-path }}

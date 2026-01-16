@@ -237,9 +237,9 @@ figma-sentinel/
 Given the tool's purpose and personal scope:
 - **npm packages:** 
   - `@khoavhd/figma-sentinel` (core + CLI combined)
-  - `@khoavhd/figma-sentinel-action` (GitHub Action)
+  - `@duckhoa-uit/figma-sentinel` (GitHub Action)
 - **CLI command:** `figma-sentinel` or `fgsen` (short alias)
-- **GitHub Action:** `khoavhd/figma-sentinel-action`
+- **GitHub Action:** `duckhoa-uit/figma-sentinel`
 - **License:** MIT
 
 ### CLI Stack (Following shadcn/ui Pattern)

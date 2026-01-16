@@ -37,7 +37,7 @@ jobs:
 
       # Step 2: Run Figma Sentinel to detect and sync design changes
       - name: Sync Figma designs
-        uses: khoavhd/figma-sentinel-action@v1
+        uses: duckhoa-uit/figma-sentinel@v1
         with:
           # Required: Your Figma API token (store as repository secret)
           figma-token: ${{ secrets.FIGMA_TOKEN }}

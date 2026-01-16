@@ -8,7 +8,7 @@ All **27 user stories completed** ✅
 |---------|---------|--------|
 | `@khoavhd/figma-sentinel-core` | 1.0.0 | Ready |
 | `@khoavhd/figma-sentinel` (CLI) | 1.0.0 | Ready |
-| `@khoavhd/figma-sentinel-action` | 1.0.0 | Ready |
+| `@duckhoa-uit/figma-sentinel` | 1.0.0 | Ready |
 
 **Test Results:** 248 tests passing  
 **Build:** All packages compile successfully  
@@ -25,7 +25,7 @@ All **27 user stories completed** ✅
 - [ ] Create access token: npm.com → Access Tokens → Generate New Token (Classic) → Automation
 
 ### 2. GitHub Repository Setup
-- [ ] Create repository: `github.com/khoavhd/figma-sentinel`
+- [ ] Create repository: `github.com/duckhoa-uit/figma-sentinel`
 - [ ] Add secrets:
   - `NPM_TOKEN`: Your npm automation token
   - `FIGMA_TOKEN`: (for testing the action)
@@ -128,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: khoavhd/figma-sentinel-action@v1
+      - uses: duckhoa-uit/figma-sentinel@v1
         with:
           figma-token: ${{ secrets.FIGMA_TOKEN }}
           dry-run: true
@@ -147,7 +147,7 @@ jobs:
 |---------|---------|
 | Core | https://www.npmjs.com/package/@khoavhd/figma-sentinel-core |
 | CLI | https://www.npmjs.com/package/@khoavhd/figma-sentinel |
-| Action | https://github.com/khoavhd/figma-sentinel-action |
+| Action | https://github.com/duckhoa-uit/figma-sentinel-action |
 
 ---
 

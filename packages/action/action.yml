@@ -1,6 +1,6 @@
 name: 'Figma Sentinel'
 description: 'Sync Figma design specs to your codebase and create PRs for design changes'
-author: 'khoavhd'
+author: 'duckhoa-uit'
 
 branding:
   icon: 'layers'

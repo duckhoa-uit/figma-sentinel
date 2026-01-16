@@ -30,7 +30,7 @@ Figma Sentinel is a directive-driven tool that monitors Figma designs referenced
 |---------|-------------|-----|
 | [`@khoavhd/figma-sentinel`](./packages/cli) | CLI tool | [![npm](https://img.shields.io/npm/v/@khoavhd/figma-sentinel.svg)](https://www.npmjs.com/package/@khoavhd/figma-sentinel) |
 | [`@khoavhd/figma-sentinel-core`](./packages/core) | Core library | [![npm](https://img.shields.io/npm/v/@khoavhd/figma-sentinel-core.svg)](https://www.npmjs.com/package/@khoavhd/figma-sentinel-core) |
-| [`@khoavhd/figma-sentinel-action`](./packages/action) | GitHub Action | [Marketplace](https://github.com/khoavhd/figma-sentinel-action) |
+| [`@khoavhd/figma-sentinel-action`](./packages/action) | GitHub Action | [Marketplace](https://github.com/duckhoa-uit/figma-sentinel) |
 
 ## Installation
 
@@ -59,7 +59,7 @@ pnpm add @khoavhd/figma-sentinel-core
 ### GitHub Action
 
 ```yaml
-- uses: khoavhd/figma-sentinel-action@v1
+- uses: duckhoa-uit/figma-sentinel@v1
   with:
     figma-token: ${{ secrets.FIGMA_TOKEN }}
 ```
@@ -305,7 +305,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Sync Figma Designs
-        uses: khoavhd/figma-sentinel-action@v1
+        uses: duckhoa-uit/figma-sentinel@v1
         with:
           figma-token: ${{ secrets.FIGMA_TOKEN }}
           create-pr: true
@@ -366,7 +366,7 @@ jobs:
       
       - name: Sync Figma Designs
         id: sync
-        uses: khoavhd/figma-sentinel-action@v1
+        uses: duckhoa-uit/figma-sentinel@v1
         with:
           figma-token: ${{ secrets.FIGMA_TOKEN }}
           create-pr: true
@@ -479,4 +479,4 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup and guidelines.
 
 ## License
 
-MIT © [khoavhd](https://github.com/khoavhd)
+MIT © [duckhoa-uit](https://github.com/duckhoa-uit)

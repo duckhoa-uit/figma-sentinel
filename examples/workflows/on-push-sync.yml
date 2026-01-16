@@ -43,7 +43,7 @@ jobs:
       # Step 2: Run Figma Sentinel
       - name: Sync Figma designs
         id: sync
-        uses: khoavhd/figma-sentinel-action@v1
+        uses: duckhoa-uit/figma-sentinel@v1
         with:
           figma-token: ${{ secrets.FIGMA_TOKEN }}
           create-pr: true
