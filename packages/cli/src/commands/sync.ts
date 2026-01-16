@@ -6,6 +6,7 @@ import ora from 'ora';
 import kleur from 'kleur';
 import { runSentinel } from '@khoavhd/figma-sentinel-core';
 import type { SentinelResult, SentinelConfig } from '@khoavhd/figma-sentinel-core';
+import { resolveConfig } from '../config.js';
 
 export interface SyncOptions {
   dryRun?: boolean;
@@ -138,12 +139,12 @@ async function runSentinelWithSpinners(
     // Create interval to check progress
     const progressInterval = setInterval(checkProgress, 100);
 
-    // Load config if path specified
-    let config: SentinelConfig | undefined;
-    if (options.config) {
-      // Config path is handled by runSentinel via cwd-relative search
-      // If explicit config path provided, we need to handle it
-      // For now, we rely on cosmiconfig which will be implemented in US-018
+    // Load config using cosmiconfig
+    const configResult = await resolveConfig(cwd, options.config);
+    const config: SentinelConfig = configResult.config;
+
+    if (configResult.configPath) {
+      logMessages.push(`Loaded configuration from ${configResult.configPath}`);
     }
 
     const result = await runSentinel({

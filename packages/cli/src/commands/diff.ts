@@ -14,11 +14,11 @@ import {
   diffSpecs,
   formatValue,
   formatPropertyPath,
-  loadConfig,
   DEFAULT_CONFIG,
   type FigmaDirective,
   type PropertyChange,
 } from '@khoavhd/figma-sentinel-core';
+import { resolveConfig } from '../config.js';
 
 export interface DiffOptions {
   fileKey?: string;
@@ -72,16 +72,10 @@ export async function diffCommand(
   let specsDir = DEFAULT_CONFIG.specsDir;
 
   try {
-    // Suppress console output from loadConfig
-    const originalLog = console.log;
-    console.log = () => {};
-
-    const configResult = loadConfig(cwd);
+    const configResult = await resolveConfig(cwd, options.config);
     if (configResult.config) {
       specsDir = configResult.config.specsDir;
     }
-
-    console.log = originalLog;
     spinner.succeed('Configuration loaded');
   } catch {
     spinner.warn('Using default configuration');

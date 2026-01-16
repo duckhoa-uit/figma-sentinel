@@ -5,15 +5,12 @@
 import ora from 'ora';
 import kleur from 'kleur';
 import {
-  loadConfig,
   parseDirectives,
-  validateConfig,
-  formatValidationErrors,
   DEFAULT_CONFIG,
 } from '@khoavhd/figma-sentinel-core';
 import type { SentinelConfig } from '@khoavhd/figma-sentinel-core';
-import * as fs from 'fs';
 import * as path from 'path';
+import { resolveConfig } from '../config.js';
 
 export interface CheckOptions {
   cwd?: string;
@@ -47,63 +44,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
   let configPath: string | null = null;
 
   try {
-    if (options.config) {
-      // Explicit config path provided
-      const resolvedPath = path.resolve(cwd, options.config);
-      if (!fs.existsSync(resolvedPath)) {
-        configSpinner.fail(kleur.red(`Config file not found: ${resolvedPath}`));
-        hasErrors = true;
-        config = DEFAULT_CONFIG;
-      } else {
-        const content = fs.readFileSync(resolvedPath, 'utf-8');
-        let rawConfig: Record<string, unknown>;
+    const result = await resolveConfig(cwd, options.config);
+    config = result.config;
+    configPath = result.configPath;
 
-        try {
-          if (resolvedPath.endsWith('.json')) {
-            rawConfig = JSON.parse(content);
-          } else if (resolvedPath.endsWith('.js')) {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const loaded = require(resolvedPath);
-            rawConfig = loaded.default || loaded;
-          } else {
-            throw new Error('Unsupported config format');
-          }
-
-          const errors = validateConfig(rawConfig);
-          if (errors.length > 0) {
-            configSpinner.fail(kleur.red('Invalid configuration'));
-            console.log(kleur.red(formatValidationErrors(errors, resolvedPath)));
-            hasErrors = true;
-            config = DEFAULT_CONFIG;
-          } else {
-            configSpinner.succeed(kleur.green(`Valid configuration found: ${resolvedPath}`));
-            configPath = resolvedPath;
-            config = { ...DEFAULT_CONFIG, ...rawConfig } as SentinelConfig;
-          }
-        } catch (parseError) {
-          configSpinner.fail(kleur.red(`Failed to parse config: ${resolvedPath}`));
-          console.log(kleur.red(`  ${parseError instanceof Error ? parseError.message : 'Unknown error'}`));
-          hasErrors = true;
-          config = DEFAULT_CONFIG;
-        }
-      }
+    if (configPath) {
+      configSpinner.succeed(kleur.green(`Configuration found: ${configPath}`));
     } else {
-      // Search for config file
-      const originalLog = console.log;
-      console.log = () => {}; // Suppress loadConfig's console.log
-      try {
-        const result = loadConfig(cwd);
-        config = result.config;
-        configPath = result.configPath;
-      } finally {
-        console.log = originalLog;
-      }
-
-      if (configPath) {
-        configSpinner.succeed(kleur.green(`Configuration found: ${configPath}`));
-      } else {
-        configSpinner.info(kleur.gray('No config file found, using defaults'));
-      }
+      configSpinner.info(kleur.gray('No config file found, using defaults'));
     }
   } catch (error) {
     configSpinner.fail(kleur.red('Failed to load configuration'));
