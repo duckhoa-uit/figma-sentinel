@@ -370,3 +370,24 @@ Thread: https://ampcode.com/threads/T-019bc778-ca3a-720a-b658-c6ad77ec9a79
   - Cast `unknown` node types to `Record<string, unknown>` for property iteration
   - Use early return with null check for array index access to avoid TS18048 errors
 ---
+
+## 2025-01-16 - US-017
+Thread: https://ampcode.com/threads/T-019bc77e-682e-71ff-9eaa-fbdf80087c55
+- Implemented CLI init command in packages/cli/src/commands/init.ts
+- Uses prompts for interactive config setup: format (js/json/package.json), specs directory, file patterns, export images, image scale
+- Supports JS config (figma-sentinel.config.js), JSON config (.figma-sentinelrc.json), and package.json key
+- Checks for existing config and prompts for overwrite confirmation
+- Generates config file based on user selection with proper content for each format
+- Displays next steps after creation with example directive syntax
+- Supports --cwd flag for working directory
+- Uses ora spinner for creation status, kleur for colored output
+- Typecheck passes, all 222 tests pass
+- Files changed:
+  - packages/cli/src/commands/init.ts (new)
+  - packages/cli/src/index.ts (imports and uses initCommand)
+- **Learnings for future iterations:**
+  - Use explicit type annotations (p: string) in map callbacks to avoid implicit any errors
+  - prompts library allows select, text, confirm, number prompt types
+  - Always check if config file exists before creating to avoid accidental overwrites
+  - Use <keyof AnswerType> generic with prompts for type safety
+---
