@@ -23,6 +23,9 @@
 - loadConfig() returns { config, configPath } not the config directly
 - ChangeDetectionResult has `changed` property not `modified`
 - SentinelResult.changeResult may be undefined - use nullish coalescing for safety
+- Action package: use `tsc --emitDeclarationOnly` for DTS like core (tsup --dts has issues with project references)
+- For Figma Variables API: requires Enterprise plan, use @figma-variables: directive syntax
+- import * as crypto from 'crypto' instead of require('crypto') to satisfy ESLint
 
 ---
 
@@ -586,4 +589,44 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc795-f7bd-70cc-8ccc-6d5ca
   - CONTRIBUTING.md structure: Setup → Structure → Scripts → Workflow → Standards → Testing → PR Process
   - Use Keep a Changelog format for CHANGELOG.md
   - .npmrc engine-strict=true enforces Node.js version requirements
+---
+
+## 2025-01-16 - US-027
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc79c-a1c4-77cd-8006-91b60822654f
+- Implemented Figma Variables API support (design tokens)
+- Created packages/core/src/variables-client.ts with:
+  - fetchVariables() and fetchVariablesForDirectives() functions
+  - normalizeVariable() and normalizeVariableCollection() for spec creation
+  - detectVariableChanges() for change detection
+  - generateVariableChangelogEntries() and generateVariableChangelogMarkdown() for changelog generation
+  - formatVariableValue() for displaying variable values (colors, numbers, aliases)
+- Updated packages/core/src/parser.ts with:
+  - @figma-variables directive parsing (supports *, single name, or comma-separated names)
+  - parseVariablesFile(), parseVariablesDirectives(), parseVariablesDirectivesSync() functions
+- Created packages/cli/src/commands/variables.ts CLI command with:
+  - --file-key, --collection, --output, --cwd, --config flags
+  - Display of collections and variables with formatted output
+  - JSON export option
+- Exported all Variables API types and functions from packages/core/src/index.ts
+- Added 26 tests in packages/core/src/__tests__/variables-client.test.ts
+- Updated README.md with:
+  - Variables CLI command documentation
+  - @figma-variables directive syntax examples
+  - Programmatic usage examples for Variables API
+- Fixed action package build (use tsc --emitDeclarationOnly instead of tsup --dts)
+- All 248 tests pass, typecheck passes, lint passes
+- Files changed:
+  - packages/core/src/variables-client.ts (new)
+  - packages/core/src/__tests__/variables-client.test.ts (new)
+  - packages/core/src/parser.ts (added variables directive parsing)
+  - packages/core/src/index.ts (added variables exports)
+  - packages/cli/src/commands/variables.ts (new)
+  - packages/cli/src/index.ts (added variables command)
+  - packages/action/package.json (fixed build script)
+  - README.md (added Variables API documentation)
+- **Learnings for future iterations:**
+  - Figma Variables API requires Enterprise plan
+  - Use @figma-variables: * to track all collections, or specify names
+  - Action package also needs tsc --emitDeclarationOnly for DTS generation
+  - Use import * as crypto from 'crypto' (ESM) not require('crypto')
 ---
