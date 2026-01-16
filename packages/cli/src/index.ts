@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { syncCommand } from './commands/sync.js';
 
 const program = new Command();
 
@@ -15,8 +16,12 @@ program
   .option('--dry-run', 'Preview changes without writing files')
   .option('--cwd <dir>', 'Set working directory')
   .option('--config <path>', 'Path to config file')
-  .action(() => {
-    console.log('sync command - to be implemented in US-014');
+  .action(async (options) => {
+    await syncCommand({
+      dryRun: options.dryRun,
+      cwd: options.cwd,
+      config: options.config,
+    });
   });
 
 program
