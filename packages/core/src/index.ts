@@ -102,3 +102,11 @@ export {
   removeMarkdownSpec,
   type MarkdownExportResult,
 } from './markdown-exporter.js';
+
+// Sentinel orchestrator exports
+export {
+  runSentinel,
+  DEFAULT_CONFIG,
+  type SentinelResult,
+  type SentinelOptions,
+} from './sentinel.js';

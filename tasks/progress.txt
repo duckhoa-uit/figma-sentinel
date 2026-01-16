@@ -12,6 +12,7 @@
 - Use `.js` extension in imports for ESM compatibility (e.g., `from './types.js'`)
 - Use vi.stubGlobal('fetch', ...) in Vitest to mock global fetch
 - Use fs.rmSync with { recursive: true, force: true } for test cleanup
+- Cannot spy on ESM exports (child_process.spawnSync) - avoid mocking or use vi.mock at module level
 
 ---
 
@@ -212,4 +213,23 @@ Thread: https://ampcode.com/threads/T-019bc758-0987-734a-acee-b309df02f85a
   - ExportedImage has `imagePath` field (not `path`)
   - Use fs.rmSync with { recursive: true, force: true } for test cleanup
   - Image paths use sanitizeNodeId from storage module (e.g., 1:23 -> 1-23.png)
+---
+
+## 2025-01-16 - US-010
+Thread: https://ampcode.com/threads/T-019bc75c-95db-7409-99e2-e48a5c755bb7
+- Migrated markdown-exporter module from source to packages/core/src/markdown-exporter.ts
+- Updated imports to use local types with .js extension and local storage module for sanitizeNodeId
+- Exported exportSpecsAsMarkdown, generateMarkdownFromSpec, isFigmaExtractorAvailable, getMarkdownFilePath, generateMarkdownWithExtractor, saveMarkdownSpec, exportSpecAsMarkdown, removeMarkdownSpec, MarkdownExportResult from index.ts
+- Created 25 unit tests in packages/core/src/__tests__/markdown-exporter.test.ts
+- All 162 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ + 18 image-exporter + 25 markdown-exporter)
+- Typecheck passes
+- Files changed:
+  - packages/core/src/markdown-exporter.ts (new)
+  - packages/core/src/__tests__/markdown-exporter.test.ts (new)
+  - packages/core/src/index.ts (added markdown-exporter exports)
+- **Learnings for future iterations:**
+  - Cannot spy on ESM module exports directly (spawnSync) - use vi.mock instead or skip mocking when not needed
+  - Markdown exporter optionally uses figma-extractor binary if available, otherwise falls back to built-in generation
+  - extractColors, extractTypography, extractLayoutRules, extractCornerRadius, extractEffects are internal helpers
+  - Use console.info for informational messages (not warnings/errors) about optional features
 ---
