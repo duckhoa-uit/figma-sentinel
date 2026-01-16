@@ -89,3 +89,16 @@ export {
   type ImageExportError,
   type ExportImagesInput,
 } from './image-exporter.js';
+
+// Markdown Exporter exports
+export {
+  exportSpecsAsMarkdown,
+  generateMarkdownFromSpec,
+  isFigmaExtractorAvailable,
+  getMarkdownFilePath,
+  generateMarkdownWithExtractor,
+  saveMarkdownSpec,
+  exportSpecAsMarkdown,
+  removeMarkdownSpec,
+  type MarkdownExportResult,
+} from './markdown-exporter.js';
