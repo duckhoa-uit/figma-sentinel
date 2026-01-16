@@ -75,6 +75,17 @@ export {
   attachImagePaths,
   writeChangelog,
   generateChangelog,
+} from './differ.js';
+
+// Image Exporter exports
+export {
+  exportImages,
+  exportImagesForMultipleFiles,
+  cleanupRemovedImages,
+  getImagePath,
+  getPreviousImagePath,
   type ExportedImage,
   type ImageExportResult,
-} from './differ.js';
+  type ImageExportError,
+  type ExportImagesInput,
+} from './image-exporter.js';

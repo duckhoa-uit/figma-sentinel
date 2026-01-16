@@ -15,19 +15,7 @@ import type {
   FigmaColor,
 } from './types.js';
 import { loadAllSpecs, sanitizeNodeId } from './storage.js';
-
-/**
- * Image export result type - minimal interface for attachImagePaths
- */
-export interface ExportedImage {
-  nodeId: string;
-  path: string;
-  previousImagePath?: string;
-}
-
-export interface ImageExportResult {
-  images: ExportedImage[];
-}
+import type { ExportedImage, ImageExportResult } from './image-exporter.js';
 
 /**
  * Generates changelog entries from a change detection result.
