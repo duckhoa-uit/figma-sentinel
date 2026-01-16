@@ -34,7 +34,7 @@ export {
 } from './normalizer.js';
 
 // Parser exports
-export { parseFile, parseDirectives, parseDirectivesSync } from './parser.js';
+export { parseFile, parseDirectives, parseDirectivesSync, parseVariablesFile, parseVariablesDirectives, parseVariablesDirectivesSync } from './parser.js';
 
 // Figma Client exports
 export {
@@ -125,3 +125,31 @@ export {
   type ConfigValidationError,
   type LoadConfigResult,
 } from './config.js';
+
+// Variables Client exports
+export {
+  fetchVariables,
+  fetchVariablesForDirectives,
+  normalizeVariable,
+  normalizeVariableCollection,
+  detectVariableChanges,
+  generateVariableChangelogEntries,
+  formatVariableValue,
+  generateVariableChangelogMarkdown,
+  type VariableResolvedType,
+  type VariableScope,
+  type VariableAlias,
+  type VariableCodeSyntax,
+  type VariableValue,
+  type FigmaVariable,
+  type VariableMode,
+  type FigmaVariableCollection,
+  type FigmaVariablesApiResponse,
+  type FigmaVariablesDirective,
+  type FetchVariablesResult,
+  type FetchVariablesError,
+  type NormalizedVariableSpec,
+  type NormalizedVariableCollectionSpec,
+  type VariableChangeDetectionResult,
+  type VariableChangelogEntry,
+} from './variables-client.js';

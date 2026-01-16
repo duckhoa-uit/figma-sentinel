@@ -216,6 +216,46 @@ Options:
 figma-sentinel diff 1:23 --file-key ABC123xyz
 ```
 
+### `figma-sentinel variables`
+
+Fetch and display Figma Variables (design tokens) from Figma files.
+
+> **Note:** The Figma Variables API requires a Figma Enterprise plan.
+
+```bash
+figma-sentinel variables [options]
+
+Options:
+  --file-key <key>      Figma file key to fetch variables from
+  --collection <name>   Filter by collection name
+  --output <path>       Output JSON file path
+  --cwd <dir>          Set working directory
+  --config <path>      Path to config file
+```
+
+**Examples:**
+```bash
+# Fetch all variables from a specific file
+figma-sentinel variables --file-key ABC123xyz
+
+# Fetch only the "Colors" collection
+figma-sentinel variables --file-key ABC123xyz --collection Colors
+
+# Export to JSON file
+figma-sentinel variables --file-key ABC123xyz --output variables.json
+
+# Using directives from source files
+figma-sentinel variables
+```
+
+**Directive Syntax for Variables:**
+```tsx
+// @figma-file: ABC123xyz
+// @figma-variables: *              // Track all collections
+// @figma-variables: Colors         // Track specific collection
+// @figma-variables: Colors, Spacing // Track multiple collections
+```
+
 ## GitHub Action Usage
 
 Add Figma Sentinel to your CI/CD pipeline for automated design sync.
@@ -349,6 +389,43 @@ console.log(`Changes detected: ${result.changeResult?.hasChanges}`);
 // Or use individual modules
 const directives = await parseDirectives(['src/**/*.tsx']);
 const { config } = await loadConfig();
+```
+
+### Variables API (Enterprise)
+
+```typescript
+import {
+  fetchVariables,
+  parseVariablesDirectivesSync,
+  normalizeVariableCollection,
+  detectVariableChanges,
+  generateVariableChangelogMarkdown
+} from '@khoavhd/figma-sentinel-core';
+
+// Fetch variables from a Figma file
+const result = await fetchVariables('YOUR_FILE_KEY', ['Colors', 'Spacing']);
+
+// Or parse directives from source files
+const directives = parseVariablesDirectivesSync(['src/**/*.tsx']);
+
+// Normalize for storage/comparison
+for (const collection of result.collections) {
+  const normalized = normalizeVariableCollection(
+    collection,
+    result.variables,
+    'file-key',
+    'source-file.ts'
+  );
+  console.log(`Collection: ${normalized.name}, Variables: ${normalized.variables.length}`);
+}
+
+// Detect changes between old and new specs
+const changes = detectVariableChanges(oldSpecs, newSpecs);
+if (changes.hasChanges) {
+  const entries = generateVariableChangelogEntries(oldSpecs, newSpecs, changes);
+  const markdown = generateVariableChangelogMarkdown(entries);
+  console.log(markdown);
+}
 ```
 
 ## Output Structure

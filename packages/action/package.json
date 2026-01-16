@@ -9,7 +9,7 @@
     "action.yml"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs --dts",
+    "build": "tsup src/index.ts --format cjs && tsc --emitDeclarationOnly --declaration --outDir dist",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests"
   },
