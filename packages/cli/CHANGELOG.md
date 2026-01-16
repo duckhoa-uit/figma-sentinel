@@ -1,5 +1,11 @@
 # @khoavhd/figma-sentinel
 
+## 1.0.2
+
+### Patch Changes
+
+- 2dea900: Add README for npm package page
+
 ## 2.0.0
 
 ### Major Changes
