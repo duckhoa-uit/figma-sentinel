@@ -284,3 +284,15 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc91-2aa0-701a-9fa6-7c301
   - Use Error.captureStackTrace for proper V8 stack traces
   - Use `.js` extension in imports for ESM compatibility
 ---
+
+## 2026-01-17 - US-002
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc92-7238-7788-8da8-3a9af74d6694
+- Created `FigmaRateLimitError` subclass extending `FigmaSentinelError`
+- Added Figma-specific properties: `retryAfterSec`, `planTier`, `rateLimitType`, `upgradeLink`
+- Set `code: 'RATE_LIMIT'` and `isRetryable: true` by default
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/errors.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Extend base error class and call super() with required code/isRetryable options
+  - Use Error.captureStackTrace with specific class name for proper stack traces
+---
