@@ -181,6 +181,9 @@ export {
 // Logger exports
 export { ConsoleLogger, type Logger, type LogLevel } from './logger.js';
 
+// Error Messages exports
+export { generateErrorMessage, type ErrorMessageContext } from './error-messages.js';
+
 // Variables Client exports
 export {
   fetchVariables,
