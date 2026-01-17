@@ -35,3 +35,19 @@ Feature branch: ralph/link-command
 PRD: tasks/prd-link-command.md
 
 ---
+
+## 2026-01-17 - US-001
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcad9-0d4a-773b-90b1-2af5217b19ef
+- Implemented `parseFigmaUrl` function in `packages/core/src/url-parser.ts`
+- Parses standard design URLs (`/design/`) and legacy file URLs (`/file/`)
+- Extracts file key from URL path and node ID from query params
+- Handles URL-encoded node IDs (decodes `%3A` to `:`)
+- Throws `FigmaUrlParseError` with descriptive messages for invalid URLs
+- Rejects FigJam (`/board/`) and prototype (`/proto/`) URLs
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/url-parser.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - URL parsing uses standard `new URL()` API
+  - File key is the second segment in the path (after the URL type)
+  - Node ID comes from `node-id` query parameter
+---
