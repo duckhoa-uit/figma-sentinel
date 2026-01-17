@@ -163,6 +163,17 @@ export {
   FigmaNetworkError,
 } from './errors.js';
 
+// Error Parser exports
+export {
+  parseErrorResponse,
+  parseRateLimitHeaders,
+  type ErrorResponsePayloadWithErrMessage,
+  type ErrorResponsePayloadWithErrorBoolean,
+  type FigmaErrorPayload,
+  type RateLimitHeaders,
+  type ParsedErrorResponse,
+} from './error-parser.js';
+
 // Variables Client exports
 export {
   fetchVariables,

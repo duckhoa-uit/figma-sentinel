@@ -311,3 +311,23 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc93-e7f8-75fc-ad9b-551b0
   - Use optional `options?: {}` for subclasses with optional properties
   - All error classes follow consistent structure: code, isRetryable, name, captureStackTrace
 ---
+
+## 2026-01-17 - US-004
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc95-9b9c-772c-8d55-4d347171288d
+- Created comprehensive test suite for all error classes in `packages/core/src/__tests__/errors.test.ts`
+- 48 tests covering:
+  - `FigmaSentinelError`: properties, inheritance, code, message, isRetryable default, cause, stack trace
+  - `FigmaRateLimitError`: extends FigmaSentinelError, code RATE_LIMIT, isRetryable=true, Figma-specific headers
+  - `FigmaAuthenticationError`: code AUTH_ERROR, isRetryable=false
+  - `FigmaNotFoundError`: code NOT_FOUND, fileKey property
+  - `FigmaServerError`: code SERVER_ERROR
+  - `FigmaValidationError`: code VALIDATION_ERROR
+  - `FigmaNetworkError`: code NETWORK_ERROR, isRetryable=true
+  - Error chaining with cause property (deep chain test)
+- All tests pass, typecheck passes, lint passes (warnings only)
+- Files changed: `packages/core/src/__tests__/errors.test.ts`
+- **Learnings for future iterations:**
+  - Use `toBeInstanceOf` to test error inheritance chain
+  - Test both provided and default values for optional properties
+  - Test cause property for error chaining across all error types
+---
