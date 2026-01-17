@@ -638,3 +638,21 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccc2-45a5-70da-9a0a-9cf1a
   - Use vi.fn<[PayloadType], void>() for typed mock functions
   - Clean up listeners with emitter.removeAllListeners() in afterEach
 ---
+
+## 2026-01-17 - US-023
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccc4-a568-7519-b98d-4444565434cb
+- Integrated ErrorEventEmitter into fetchWithRetry function
+- Added FetchWithRetryOptions interface with eventEmitter and context properties
+- Emits 'rateLimited' event when 429 response received with all header info
+- Emits 'retry' event before each retry attempt with attempt, maxRetries, delayMs, url
+- Emits 'error' event when max retries exceeded or max delay exceeded
+- Updated FetchNodesOptions to include optional eventEmitter parameter
+- Modified fetchNodesForFileKey to pass eventEmitter with fileKey context
+- Modified fetchNodes to create retryOptions and pass through to fetchNodesForFileKey
+- Updated tests to expect FigmaRateLimitError instead of FigmaNetworkError for max retries
+- Files changed: `packages/core/src/figma-client.ts`, `packages/core/src/__tests__/fetch-retry.test.ts`, `packages/core/src/__tests__/figma-client.test.ts`
+- **Learnings for future iterations:**
+  - When changing error types thrown, update all tests that expect the old type
+  - Event emitters can be optionally threaded through function calls using options objects
+  - Context (fileKey) can be accumulated as it flows through nested functions
+---
