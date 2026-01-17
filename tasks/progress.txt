@@ -541,3 +541,23 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccae-c8ad-75fc-83f6-589b7
   - Test both with and without optional context parameters
   - Use `toContain` for partial message matching, `toBe` for exact match
 ---
+
+## 2026-01-17 - US-018
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccb2-6c71-732c-8e66-073af89bf4a3
+- Created comprehensive test suite for `ErrorAggregator` class
+- 14 tests covering:
+  - addError: without context, with context, multiple errors
+  - addSuccess: increment success count
+  - getErrors: empty array, returns copy
+  - getSuccessCount/getFailureCount: correct counts
+  - getSummary: grouping by error type, grouping by file key, empty summary
+  - reset: clears all errors and counters
+- Tests verify grouping includes error references and context information
+- Uses "unknown" as fallback file key when context.fileKey is undefined
+- All tests pass, typecheck passes
+- Files changed: `packages/core/src/__tests__/error-aggregator.test.ts`
+- **Learnings for future iterations:**
+  - ErrorAggregator returns copies of errors array to prevent external mutation
+  - getSummary groups by error.code and context.fileKey
+  - Use Map for efficient grouping operations
+---
