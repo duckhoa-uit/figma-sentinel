@@ -36,6 +36,7 @@ import {
 } from './image-exporter.js';
 import { exportSpecsAsMarkdown, removeMarkdownSpec } from './markdown-exporter.js';
 import { loadConfig, type LoadConfigResult } from './config.js';
+import type { ErrorEventEmitter } from './error-events.js';
 
 /**
  * Result of running the Sentinel workflow.
@@ -59,6 +60,7 @@ export interface SentinelOptions {
   cwd?: string;
   config?: SentinelConfig;
   dryRun?: boolean;
+  eventEmitter?: ErrorEventEmitter;
 }
 
 /**
@@ -149,7 +151,10 @@ export async function runSentinel(
   // Step 3: Fetch nodes from Figma API
   let fetchedNodes: FetchedNode[];
   try {
-    const fetchResult = await fetchNodes(directives);
+    const fetchResult = await fetchNodes(directives, {
+      apiConfig: config.api,
+      eventEmitter: options.eventEmitter,
+    });
     fetchedNodes = fetchResult.nodes;
     apiCallCount = new Set(directives.map((d) => d.fileKey)).size;
   } catch (error) {

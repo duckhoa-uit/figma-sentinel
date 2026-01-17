@@ -4,7 +4,13 @@
 
 import ora from 'ora';
 import kleur from 'kleur';
-import { runSentinel, ConsoleLogger } from '@khoavhd/figma-sentinel-core';
+import {
+  runSentinel,
+  ConsoleLogger,
+  generateErrorMessage,
+  FigmaSentinelError,
+  createEventEmitter,
+} from '@khoavhd/figma-sentinel-core';
 import type { SentinelResult, SentinelConfig, LogLevel } from '@khoavhd/figma-sentinel-core';
 import { resolveConfig } from '../config.js';
 
@@ -85,7 +91,16 @@ export async function syncCommand(options: SyncOptions): Promise<void> {
     process.exit(0);
   } catch (error) {
     scanSpinner.fail(kleur.red('Sync failed'));
-    const message = error instanceof Error ? error.message : 'Unknown error';
+
+    let message: string;
+    if (error instanceof FigmaSentinelError) {
+      message = generateErrorMessage(error);
+    } else if (error instanceof Error) {
+      message = error.message;
+    } else {
+      message = 'Unknown error';
+    }
+
     console.log(kleur.red(`\n✗ Error: ${message}\n`));
     process.exit(1);
   }
@@ -184,11 +199,59 @@ async function runSentinelWithSpinners(
       logger.debug('Starting sentinel workflow...');
     }
 
+    // Create event emitter for rate limit notifications
+    const eventEmitter = createEventEmitter();
+    let rateLimitInterval: ReturnType<typeof setInterval> | null = null;
+    let rateLimitEndTime = 0;
+    let savedSpinnerText = '';
+
+    eventEmitter.onRateLimited((payload) => {
+      savedSpinnerText = scanSpinner.text;
+      rateLimitEndTime = Date.now() + payload.details.retryAfterSec * 1000;
+
+      const tierInfo = payload.details.headers?.planTier
+        ? ` (${payload.details.headers.planTier})`
+        : '';
+      scanSpinner.color = 'yellow';
+      scanSpinner.text = kleur.yellow(
+        `Rate limited${tierInfo}. Waiting ${payload.details.retryAfterSec}s...`
+      );
+
+      rateLimitInterval = setInterval(() => {
+        const remaining = Math.max(0, Math.ceil((rateLimitEndTime - Date.now()) / 1000));
+        scanSpinner.text = kleur.yellow(`Rate limited${tierInfo}. Waiting ${remaining}s...`);
+
+        if (remaining <= 0 && rateLimitInterval) {
+          clearInterval(rateLimitInterval);
+          rateLimitInterval = null;
+          scanSpinner.color = 'cyan';
+          scanSpinner.text = savedSpinnerText;
+        }
+      }, 1000);
+    });
+
+    eventEmitter.onRetry((payload) => {
+      if (rateLimitInterval) {
+        clearInterval(rateLimitInterval);
+        rateLimitInterval = null;
+      }
+      scanSpinner.color = 'yellow';
+      scanSpinner.text = kleur.yellow(
+        `Retrying request (${payload.details.attempt}/${payload.details.maxRetries})...`
+      );
+    });
+
     const result = await runSentinel({
       cwd,
       dryRun: options.dryRun,
       config,
+      eventEmitter,
     });
+
+    if (rateLimitInterval) {
+      clearInterval(rateLimitInterval);
+    }
+    eventEmitter.removeAllListeners();
 
     if (options.verbose) {
       logger.debug(`Sentinel workflow completed in ${Date.now() - fetchStartTime}ms`);
