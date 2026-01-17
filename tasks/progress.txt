@@ -196,3 +196,19 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf1-4645-76a9-a900-e0671
   - Commander's `<arg...>` variadic syntax automatically collects multiple values into an array
   - Batch linking was fully implemented as part of US-008 due to natural code flow
 ---
+
+## 2026-01-17 - US-012
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf3-237c-74b2-8404-da27dc36de1b
+- Implemented interactive mode for link command
+- Added `promptForUrl()` function that prompts for Figma URL and re-prompts on invalid input
+- Added `promptForFile()` function that prompts for file path and re-prompts if file doesn't exist
+- Added `runInteractiveMode()` function that orchestrates the interactive flow
+- After successful link: prompts "Link another file?" to link multiple files with same URL
+- When no URL or file args provided, command enters interactive mode automatically
+- Extracted `showSummary()` helper for code reuse between batch and interactive modes
+- Files changed: `packages/cli/src/commands/link.ts`
+- **Learnings for future iterations:**
+  - Use `while (!isValid)` pattern for validation loops (ESLint-friendly)
+  - Return null from prompt functions when user cancels (Ctrl+C) for clean abort handling
+  - Interactive mode can fall back to non-interactive if URL is provided but file is not
+---
