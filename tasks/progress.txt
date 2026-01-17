@@ -737,3 +737,18 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccd9-aba4-724e-b254-0e87e
   - Use vi.clearAllMocks() in beforeEach for cleaner test isolation
   - Action package tests need to mock @actions/core, core package, and pr module
 ---
+
+## 2026-01-17 - US-029
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccde-c366-7598-b822-0ceda07d652e
+- Added comprehensive "Error Handling" section to README.md
+- Documented all 6 error types with codes, when they occur, and retryability
+- Documented retry behavior with Retry-After header support and exponential backoff
+- Documented `api` config section for concurrency/retry settings
+- Added example for custom error event handlers using createEventEmitter
+- Documented GitHub Action error outputs (error-count, error-details)
+- Files changed: `README.md`
+- **Learnings for future iterations:**
+  - Event payload types are exported from core: ErrorEventPayload, RetryEventPayload, etc.
+  - The api config section has concurrency, maxRetries, maxRetryDelayMs options
+  - GitHub Action outputs error-details as JSON with code, message, isRetryable, name
+---
