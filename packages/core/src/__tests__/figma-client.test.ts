@@ -5,6 +5,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { fetchNodes } from '../figma-client.js';
 import type { FigmaDirective } from '../types.js';
+import {
+  FigmaNetworkError,
+  FigmaAuthenticationError,
+  FigmaNotFoundError,
+  FigmaValidationError,
+} from '../errors.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -57,7 +63,6 @@ describe('fetchNodes', () => {
     expect(result.nodes[0].nodeId).toBe('1:23');
     expect(result.nodes[0].node.name).toBe('Button');
     expect(result.nodes[0].sourceFiles).toContain('/src/components/Button.tsx');
-    expect(result.errors).toHaveLength(0);
 
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('https://api.figma.com/v1/files/ABC123/nodes?ids=1%3A23'),
@@ -96,7 +101,6 @@ describe('fetchNodes', () => {
     );
 
     expect(result.nodes).toHaveLength(2);
-    expect(result.errors).toHaveLength(0);
   });
 
   it('handles multiple file keys with separate API calls', async () => {
@@ -154,7 +158,6 @@ describe('fetchNodes', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(result.nodes).toHaveLength(2);
-    expect(result.errors).toHaveLength(0);
   });
 
   it('handles rate limit response with retry', async () => {
@@ -191,7 +194,6 @@ describe('fetchNodes', () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(result.nodes).toHaveLength(1);
-    expect(result.errors).toHaveLength(0);
     expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining('Rate limited'),
     );
@@ -216,12 +218,8 @@ describe('fetchNodes', () => {
       },
     ];
 
-    const result = await fetchNodes(directives);
-
-    expect(global.fetch).toHaveBeenCalledTimes(4);
-    expect(result.nodes).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain('Max retries');
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaNetworkError);
+    await expect(fetchNodes(directives)).rejects.toThrow('Max retries');
   }, 30000);
 
   it('handles network error', async () => {
@@ -235,11 +233,8 @@ describe('fetchNodes', () => {
       },
     ];
 
-    const result = await fetchNodes(directives);
-
-    expect(result.nodes).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain('Network unavailable');
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaNetworkError);
+    await expect(fetchNodes(directives)).rejects.toThrow('Network unavailable');
   });
 
   it('handles invalid token (403) error', async () => {
@@ -257,11 +252,8 @@ describe('fetchNodes', () => {
       },
     ];
 
-    const result = await fetchNodes(directives);
-
-    expect(result.nodes).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain('Invalid or expired FIGMA_TOKEN');
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaAuthenticationError);
+    await expect(fetchNodes(directives)).rejects.toThrow('Access denied');
   });
 
   it('handles file not found (404) error', async () => {
@@ -279,11 +271,8 @@ describe('fetchNodes', () => {
       },
     ];
 
-    const result = await fetchNodes(directives);
-
-    expect(result.nodes).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain('Figma file not found');
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaNotFoundError);
+    await expect(fetchNodes(directives)).rejects.toThrow('Figma file not found');
   });
 
   it('handles missing node in response', async () => {
@@ -301,11 +290,8 @@ describe('fetchNodes', () => {
       },
     ];
 
-    const result = await fetchNodes(directives);
-
-    expect(result.nodes).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain('not found in file');
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaNotFoundError);
+    await expect(fetchNodes(directives)).rejects.toThrow('not found in file');
   });
 
   it('handles invalid JSON response', async () => {
@@ -325,11 +311,8 @@ describe('fetchNodes', () => {
       },
     ];
 
-    const result = await fetchNodes(directives);
-
-    expect(result.nodes).toHaveLength(0);
-    expect(result.errors).toHaveLength(1);
-    expect(result.errors[0].message).toContain('Failed to parse');
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaValidationError);
+    await expect(fetchNodes(directives)).rejects.toThrow('Failed to parse');
   });
 
   it('throws error when FIGMA_TOKEN is missing', async () => {

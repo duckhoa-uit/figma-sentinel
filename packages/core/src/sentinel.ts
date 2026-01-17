@@ -152,12 +152,6 @@ export async function runSentinel(
     const fetchResult = await fetchNodes(directives);
     fetchedNodes = fetchResult.nodes;
     apiCallCount = new Set(directives.map((d) => d.fileKey)).size;
-
-    if (fetchResult.errors.length > 0) {
-      for (const error of fetchResult.errors) {
-        errors.push(`Node ${error.nodeId}: ${error.message}`);
-      }
-    }
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Failed to fetch nodes from Figma';

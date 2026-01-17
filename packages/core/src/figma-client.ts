@@ -13,7 +13,14 @@ import type {
   ApiConfig,
 } from './types.js';
 import { parseRateLimitHeaders } from './error-parser.js';
-import { FigmaRateLimitError } from './errors.js';
+import {
+  FigmaRateLimitError,
+  FigmaAuthenticationError,
+  FigmaNotFoundError,
+  FigmaServerError,
+  FigmaValidationError,
+  FigmaNetworkError,
+} from './errors.js';
 import { DEFAULT_API_CONFIG } from './config.js';
 
 const FIGMA_API_BASE = 'https://api.figma.com';
@@ -29,12 +36,6 @@ export interface FetchedNode {
 
 export interface FetchResult {
   nodes: FetchedNode[];
-  errors: FetchError[];
-}
-
-export interface FetchError {
-  nodeId: string;
-  message: string;
 }
 
 function getToken(): string {
@@ -143,7 +144,6 @@ async function fetchNodesForFileKey(
 ): Promise<FetchResult> {
   const { fileKey, nodeIds, sourceFiles } = request;
   const nodes: FetchedNode[] = [];
-  const errors: FetchError[] = [];
 
   const idsParam = nodeIds.join(',');
   const url = `${FIGMA_API_BASE}/v1/files/${fileKey}/nodes?ids=${encodeURIComponent(idsParam)}`;
@@ -152,35 +152,58 @@ async function fetchNodesForFileKey(
   try {
     response = await fetchWithRetry(url, token);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Network error';
-    for (const nodeId of nodeIds) {
-      errors.push({ nodeId, message });
+    // Re-throw typed errors from fetchWithRetry (e.g., FigmaRateLimitError)
+    if (error instanceof FigmaRateLimitError) {
+      throw error;
     }
-    return { nodes, errors };
+    // Wrap network errors in FigmaNetworkError
+    const message = error instanceof Error ? error.message : 'Network error';
+    throw new FigmaNetworkError(message, {
+      cause: error instanceof Error ? error : undefined,
+    });
   }
 
   if (!response.ok) {
-    let errorMessage = `Figma API error: ${response.status} ${response.statusText}`;
-    if (response.status === 403) {
-      errorMessage =
-        'Invalid or expired FIGMA_TOKEN. Please check your token has access to this file.';
-    } else if (response.status === 404) {
-      errorMessage = `Figma file not found: ${fileKey}. Check the file key is correct.`;
+    // Throw typed error based on HTTP status code
+    switch (response.status) {
+      case 400:
+        throw new FigmaValidationError(
+          `Invalid request for file ${fileKey}: ${response.statusText}`
+        );
+      case 401:
+        throw new FigmaAuthenticationError(
+          'Authentication failed. Verify your FIGMA_TOKEN is valid and not expired.'
+        );
+      case 403:
+        throw new FigmaAuthenticationError(
+          `Access denied for file ${fileKey}. Check: 1) Token has file_read scope 2) You have view access 3) Enterprise plan for Variables.`
+        );
+      case 404:
+        throw new FigmaNotFoundError(
+          `Figma file not found: ${fileKey}. Check the file key is correct.`,
+          { fileKey }
+        );
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        throw new FigmaServerError(
+          `Figma server error (${response.status}): ${response.statusText}. Try reducing nodes requested or try again later.`
+        );
+      default:
+        throw new FigmaServerError(
+          `Figma API error: ${response.status} ${response.statusText}`
+        );
     }
-    for (const nodeId of nodeIds) {
-      errors.push({ nodeId, message: errorMessage });
-    }
-    return { nodes, errors };
   }
 
   let data: FigmaApiNodesResponse;
   try {
     data = (await response.json()) as FigmaApiNodesResponse;
-  } catch {
-    for (const nodeId of nodeIds) {
-      errors.push({ nodeId, message: 'Failed to parse Figma API response' });
-    }
-    return { nodes, errors };
+  } catch (error) {
+    throw new FigmaValidationError('Failed to parse Figma API response', {
+      cause: error instanceof Error ? error : undefined,
+    });
   }
 
   for (const nodeId of nodeIds) {
@@ -192,14 +215,14 @@ async function fetchNodesForFileKey(
         sourceFiles: sourceFiles.get(nodeId) || [],
       });
     } else {
-      errors.push({
-        nodeId,
-        message: `Node ${nodeId} not found in file ${fileKey}`,
-      });
+      throw new FigmaNotFoundError(
+        `Node ${nodeId} not found in file ${fileKey}`,
+        { fileKey }
+      );
     }
   }
 
-  return { nodes, errors };
+  return { nodes };
 }
 
 export interface FetchNodesOptions {
@@ -214,7 +237,6 @@ export async function fetchNodes(
   const token = getToken();
   const requests = groupDirectivesByFileKey(directives);
   const allNodes: FetchedNode[] = [];
-  const allErrors: FetchError[] = [];
 
   const concurrency = options?.apiConfig?.concurrency ?? DEFAULT_API_CONFIG.concurrency;
   const limit = pLimit(concurrency);
@@ -223,26 +245,19 @@ export async function fetchNodes(
     `Fetching ${directives.reduce((sum, d) => sum + d.nodeIds.length, 0)} nodes from ${requests.length} Figma file(s) (concurrency: ${concurrency})`,
   );
 
+  // With fail-fast behavior, we need to stop on first error
+  // Using Promise.all will reject on first error, propagating it up
   const results = await Promise.all(
     requests.map(request => limit(() => fetchNodesForFileKey(request, token))),
   );
 
   for (const result of results) {
     allNodes.push(...result.nodes);
-    allErrors.push(...result.errors);
-  }
-
-  if (allErrors.length > 0) {
-    console.warn(`Encountered ${allErrors.length} error(s) while fetching nodes:`);
-    for (const error of allErrors) {
-      console.warn(`  - ${error.nodeId}: ${error.message}`);
-    }
   }
 
   console.log(`Successfully fetched ${allNodes.length} node(s)`);
 
   return {
     nodes: allNodes,
-    errors: allErrors,
   };
 }

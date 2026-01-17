@@ -109,18 +109,20 @@ export async function diffCommand(
     console.log = () => {};
     console.warn = () => {};
 
-    const fetchResult = await fetchNodes([directive]);
+    let fetchResult;
+    try {
+      fetchResult = await fetchNodes([directive]);
+    } catch (error) {
+      console.log = originalLog;
+      console.warn = originalWarn;
+      spinner.fail('Failed to fetch node from Figma');
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.log(kleur.red(`  • ${message}`));
+      process.exit(1);
+    }
 
     console.log = originalLog;
     console.warn = originalWarn;
-
-    if (fetchResult.errors.length > 0) {
-      spinner.fail('Failed to fetch node from Figma');
-      for (const error of fetchResult.errors) {
-        console.log(kleur.red(`  • ${error.message}`));
-      }
-      process.exit(1);
-    }
 
     const fetchedNode = fetchResult.nodes[0];
     if (!fetchedNode) {

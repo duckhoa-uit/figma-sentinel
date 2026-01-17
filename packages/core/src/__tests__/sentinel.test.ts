@@ -624,7 +624,7 @@ describe('runSentinel integration tests', () => {
   });
 
   describe('warnings and edge cases', () => {
-    it('handles nodes with missing data in response', async () => {
+    it('fails with missing node in response', async () => {
       createTestSourceFile('Button.tsx', 'ABC123', ['1:23', '99:99']);
 
       vi.stubGlobal(
@@ -641,8 +641,10 @@ describe('runSentinel integration tests', () => {
 
       const result = await runSentinel({ cwd: testTempDir });
 
-      expect(result.success).toBe(true);
-      expect(result.nodesProcessed).toBe(1);
+      // With fail-fast behavior, missing node throws an error
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]).toContain('not found in file');
     });
 
     it('logs warning when fetch returns partial node errors', async () => {

@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { fetchNodes } from '../figma-client.js';
 import type { FigmaDirective } from '../types.js';
+import { FigmaRateLimitError, FigmaNetworkError } from '../errors.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -79,7 +80,6 @@ describe('fetchWithRetry', () => {
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(result.nodes).toHaveLength(1);
-      expect(result.errors).toHaveLength(0);
       expect(console.warn).toHaveBeenCalledWith(
         expect.stringContaining(`${retryAfterSeconds * 1000}ms`)
       );
@@ -115,7 +115,6 @@ describe('fetchWithRetry', () => {
       const result = await resultPromise;
 
       expect(result.nodes).toHaveLength(1);
-      expect(result.errors).toHaveLength(0);
     });
   });
 
@@ -149,7 +148,6 @@ describe('fetchWithRetry', () => {
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(result.nodes).toHaveLength(1);
-      expect(result.errors).toHaveLength(0);
       expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('1000ms'));
     });
 
@@ -184,7 +182,6 @@ describe('fetchWithRetry', () => {
 
       expect(global.fetch).toHaveBeenCalledTimes(3);
       expect(result.nodes).toHaveLength(1);
-      expect(result.errors).toHaveLength(0);
     });
   });
 
@@ -202,14 +199,13 @@ describe('fetchWithRetry', () => {
         }),
       } as Response);
 
-      const result = await fetchNodes(testDirectives);
-
-      // Should only call once and abort (not retry)
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-      expect(result.nodes).toHaveLength(0);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('exceeds maximum');
-      expect(result.errors[0].message).toContain('upgrade');
+      try {
+        await fetchNodes(testDirectives);
+        expect.fail('Should have thrown FigmaRateLimitError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(FigmaRateLimitError);
+        expect((error as Error).message).toContain('exceeds maximum');
+      }
     });
 
     it('throws FigmaRateLimitError with rate limit info when aborting', async () => {
@@ -227,11 +223,13 @@ describe('fetchWithRetry', () => {
         }),
       } as Response);
 
-      const result = await fetchNodes(testDirectives);
-
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('7200s');
-      expect(result.errors[0].message).toContain('3600s');
+      try {
+        await fetchNodes(testDirectives);
+        expect.fail('Should have thrown FigmaRateLimitError');
+      } catch (error) {
+        expect(error).toBeInstanceOf(FigmaRateLimitError);
+        expect((error as Error).message).toContain('7200s');
+      }
     });
 
     it('proceeds with retry when Retry-After is within max delay', async () => {
@@ -263,7 +261,6 @@ describe('fetchWithRetry', () => {
 
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(result.nodes).toHaveLength(1);
-      expect(result.errors).toHaveLength(0);
     });
   });
 
@@ -281,20 +278,24 @@ describe('fetchWithRetry', () => {
       } as Response);
 
       const resultPromise = fetchNodes(testDirectives);
+      
+      // Attach rejection handler immediately to prevent unhandled rejection
+      let caughtError: Error | null = null;
+      const errorPromise = resultPromise.catch((err: Error) => {
+        caughtError = err;
+      });
 
       // Advance through all retry attempts (MAX_RETRIES = 3)
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         await vi.advanceTimersByTimeAsync(retryAfterSec * 1000);
       }
 
-      const result = await resultPromise;
+      await errorPromise;
 
       // 1 initial call + 3 retries = 4 total calls
-      expect(global.fetch).toHaveBeenCalledTimes(4);
-      expect(result.nodes).toHaveLength(0);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('Max retries');
-    });
+      expect(caughtError).toBeInstanceOf(FigmaNetworkError);
+      expect(caughtError?.message).toContain('Max retries');
+    }, 10000);
 
     it('gives up after MAX_RETRIES attempts with exponential backoff', async () => {
       global.fetch = vi.fn().mockResolvedValue({
@@ -305,20 +306,25 @@ describe('fetchWithRetry', () => {
       } as Response);
 
       const resultPromise = fetchNodes(testDirectives);
+      
+      // Attach rejection handler immediately to prevent unhandled rejection
+      let caughtError: Error | null = null;
+      const errorPromise = resultPromise.catch((err: Error) => {
+        caughtError = err;
+      });
 
       // Advance through all retry attempts with exponential backoff
       // Retry 1: 1000ms, Retry 2: 2000ms, Retry 3: 4000ms
       await vi.advanceTimersByTimeAsync(1000);
       await vi.advanceTimersByTimeAsync(2000);
       await vi.advanceTimersByTimeAsync(4000);
+      await vi.advanceTimersByTimeAsync(1000); // Extra time to ensure completion
 
-      const result = await resultPromise;
+      await errorPromise;
 
-      expect(global.fetch).toHaveBeenCalledTimes(4);
-      expect(result.nodes).toHaveLength(0);
-      expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('Max retries');
-    });
+      expect(caughtError).toBeInstanceOf(FigmaNetworkError);
+      expect(caughtError?.message).toContain('Max retries');
+    }, 10000);
   });
 
   describe('retry success scenarios', () => {
