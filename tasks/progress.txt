@@ -656,3 +656,16 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccc4-a568-7519-b98d-44445
   - Event emitters can be optionally threaded through function calls using options objects
   - Context (fileKey) can be accumulated as it flows through nested functions
 ---
+
+## 2026-01-17 - US-024
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcccb-0985-713a-9bff-b01b65d94b9a
+- Added `-v, --verbose` flag to sync command in `packages/cli/src/index.ts`
+- Flag was already wired up in `sync.ts` (SyncOptions interface and runSentinelWithSpinners logic)
+- Just needed to register the option in Commander and pass `options.verbose` to syncCommand
+- Debug output includes: working directory, config path, config JSON, sentinel workflow timing, API call counts
+- Default log level is 'info', verbose mode sets it to 'debug'
+- Files changed: `packages/cli/src/index.ts`
+- **Learnings for future iterations:**
+  - The sync.ts already had verbose support implemented - just missing the CLI flag registration
+  - ConsoleLogger imported from core package handles log level filtering
+---
