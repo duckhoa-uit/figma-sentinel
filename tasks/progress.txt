@@ -441,3 +441,20 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca3-2bf2-70cc-beb1-d0c83
   - Zod `.default()` provides fallback when parsing partial config
   - Optional nested config objects need explicit undefined handling in mergeConfig
 ---
+
+## 2026-01-17 - US-012
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca6-90c9-72ff-91c8-22fcd3bc1a57
+- Applied concurrency control to fetchNodes using p-limit
+- Imported p-limit, ApiConfig, and DEFAULT_API_CONFIG
+- Created FetchNodesOptions interface with optional apiConfig
+- Updated fetchNodes to accept options parameter and use p-limit limiter
+- Uses Promise.all with limit() wrapper to control concurrent fetchNodesForFileKey calls
+- Defaults to concurrency of 5 from DEFAULT_API_CONFIG
+- Logs concurrency level in fetch message for visibility
+- Exported FetchNodesOptions from barrel file (index.ts)
+- Files changed: `packages/core/src/figma-client.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - p-limit is simple: `const limit = pLimit(n)` then `limit(() => asyncFn())`
+  - Use Promise.all with requests.map for parallel execution with limits
+  - Use ?? operator to provide defaults from config constants
+---
