@@ -183,3 +183,16 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaef-2d75-72bf-8d3f-10dcc
   - Stop spinner before prompting (spinner.stop()) to avoid display issues
   - Check for undefined response.action to handle user Ctrl+C cancellation
 ---
+
+## 2026-01-17 - US-011
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf1-4645-76a9-a900-e067169ff5c7
+- Verified batch linking functionality already implemented in US-008
+- Support for multiple `--file` arguments via Commander's `<path...>` syntax
+- Each file processed independently with progress spinner
+- Partial failures handled gracefully (continue processing remaining files)
+- Summary displayed at end with success/failed/skipped/warning counts
+- Files changed: none (verified existing implementation)
+- **Learnings for future iterations:**
+  - Commander's `<arg...>` variadic syntax automatically collects multiple values into an array
+  - Batch linking was fully implemented as part of US-008 due to natural code flow
+---
