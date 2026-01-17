@@ -268,7 +268,7 @@
         "All tests pass: `pnpm -F @khoavhd/figma-sentinel-core test src/__tests__/error-messages.test.ts`"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {

@@ -184,6 +184,16 @@ export { ConsoleLogger, type Logger, type LogLevel } from './logger.js';
 // Error Messages exports
 export { generateErrorMessage, type ErrorMessageContext } from './error-messages.js';
 
+// Error Aggregator exports
+export {
+  ErrorAggregator,
+  type ErrorContext,
+  type AggregatedError,
+  type ErrorTypeSummary,
+  type FileKeySummary,
+  type ErrorSummary,
+} from './error-aggregator.js';
+
 // Variables Client exports
 export {
   fetchVariables,

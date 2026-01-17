@@ -510,3 +510,16 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccac-867f-764c-9e2e-b55ab
   - Use instanceof checks to access subclass-specific properties like FigmaRateLimitError.retryAfterSec
   - Only import error classes actually needed to avoid TypeScript unused-import errors
 ---
+
+## 2026-01-17 - US-016
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccae-c8ad-75fc-83f6-589b7cd83e30
+- Created comprehensive test suite for `generateErrorMessage` function
+- 20 tests covering all error codes (400, 401, 403, 404, 429, 500, network) and context interpolation
+- Fixed operator precedence bug in error-messages.ts line 31 (ternary with nullish coalescing)
+- Tests verify message format, context interpolation, and rate limit info inclusion
+- Files changed: `packages/core/src/__tests__/error-messages.test.ts`, `packages/core/src/error-messages.ts`
+- **Learnings for future iterations:**
+  - Ternary operator with nullish coalescing needs parentheses: `a ?? (b ? c : d)` not `a ?? b ? c : d`
+  - Test both with and without optional context parameters
+  - Use `toContain` for partial message matching, `toBe` for exact match
+---
