@@ -152,6 +152,9 @@ export {
   type InsertDirectivesResult,
 } from './directive-inserter.js';
 
+// Error exports
+export { FigmaSentinelError } from './errors.js';
+
 // Variables Client exports
 export {
   fetchVariables,
