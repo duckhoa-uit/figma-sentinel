@@ -193,6 +193,18 @@ export {
   type ErrorSummary,
 } from './error-aggregator.js';
 
+// Error Events exports
+export {
+  ErrorEventEmitter,
+  createEventEmitter,
+  type ErrorEventPayload,
+  type RetryEventPayload,
+  type RateLimitedEventPayload,
+  type CompletedEventPayload,
+  type ErrorEventPayloadTypes,
+  type ErrorEventMap,
+} from './error-events.js';
+
 // Variables Client exports
 export {
   fetchVariables,
