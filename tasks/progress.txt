@@ -51,3 +51,15 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcad9-0d4a-773b-90b1-2af52
   - File key is the second segment in the path (after the URL type)
   - Node ID comes from `node-id` query parameter
 ---
+
+## 2026-01-17 - US-002
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcada-9c57-704a-8ef8-87be0f9dab13
+- Created comprehensive test suite for `parseFigmaUrl` function
+- Tests cover: valid design URLs (with/without node ID), legacy file URLs, URL-encoded node IDs, non-Figma URLs, FigJam/prototype rejection, and malformed URLs
+- 19 tests total, all passing
+- Files changed: `packages/core/src/__tests__/url-parser.test.ts`
+- **Learnings for future iterations:**
+  - Test pattern uses `describe` blocks to group related tests
+  - Use `.toThrow(ErrorClass)` and `.toThrow('message')` for testing error messages
+  - Import error classes from source to verify correct error types are thrown
+---

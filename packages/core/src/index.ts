@@ -133,6 +133,13 @@ export {
   type ParsedFigmaUrl,
 } from './url-parser.js';
 
+// Comment Style exports
+export {
+  getCommentStyle,
+  formatDirective,
+  type CommentStyle,
+} from './comment-style.js';
+
 // Variables Client exports
 export {
   fetchVariables,
