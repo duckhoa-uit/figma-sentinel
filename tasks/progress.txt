@@ -106,3 +106,19 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcadf-d278-775c-b52e-3a142
   - Global regex patterns need lastIndex reset before each use
   - TypeScript requires explicit null checks for regex match groups
 ---
+
+## 2026-01-17 - US-006
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae2-121c-7456-b035-24bdc952703e
+- Created `insertDirectives` function in `packages/core/src/directive-inserter.ts`
+- Supports three modes: 'insert' (new directives), 'append' (add node to existing), 'replace' (replace all)
+- Handles shebangs by inserting directives after the shebang line
+- Detects and preserves original line endings (LF or CRLF)
+- Adds blank line between directives and existing content
+- Created convenience functions: `appendNodeDirective`, `replaceDirectives`
+- Exported all functions and types from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/directive-inserter.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - TypeScript strict mode requires explicit undefined checks for array access
+  - Use split(/\r?\n/) to handle both LF and CRLF line endings
+  - Detect line ending style with content.includes('\r\n')
+---
