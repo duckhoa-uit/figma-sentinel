@@ -250,3 +250,17 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcb85-7a63-76a4-8b4b-5d2e2
   - Check if previous iterations already implemented the story before starting work
   - Init command reuses link command functions via imports for consistency
 ---
+
+## 2026-01-17 - US-015
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcb87-2121-752c-94b5-0afd04d046ca
+- Updated README.md with link command documentation
+- Added `### figma-sentinel link` section after `### figma-sentinel variables`
+- Included command syntax with all options (-f, -p, -y, --force, -c)
+- Added "How it works" explanation and usage examples (basic, batch, force, yes)
+- Updated Quick Start section with tip about link command
+- Added "Easy Linking" to Features list
+- Files changed: `README.md`
+- **Learnings for future iterations:**
+  - README sections for CLI commands follow consistent structure: syntax, options, how it works, examples
+  - Use > **Tip:** for inline tips in Quick Start section
+---
