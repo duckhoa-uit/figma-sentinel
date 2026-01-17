@@ -390,3 +390,17 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc9c-16dd-70e3-bc59-10a6d
   - Use !== undefined check for optional number properties
   - Log wait time in ms for consistency with existing code
 ---
+
+## 2026-01-17 - US-009
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc9d-ac49-711b-90cb-0047fdec772a
+- Added `MAX_RETRY_DELAY_MS` constant (3600000ms = 1 hour) in `packages/core/src/figma-client.ts`
+- Implemented abort behavior when Retry-After exceeds MAX_RETRY_DELAY_MS
+- Throws `FigmaRateLimitError` with descriptive message including wait time and upgrade link
+- Includes all rate limit header info (planTier, rateLimitType, upgradeLink) in the thrown error
+- Updated existing tests to mock headers with valid Retry-After values
+- Files changed: `packages/core/src/figma-client.ts`, `packages/core/src/__tests__/figma-client.test.ts`
+- **Learnings for future iterations:**
+  - When modifying retry behavior, existing tests may need headers mocked with valid values
+  - FigmaRateLimitError accepts options object with retryAfterSec, planTier, rateLimitType, upgradeLink
+  - Use Math.round for display values when converting between seconds and milliseconds
+---
