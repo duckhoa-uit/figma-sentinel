@@ -80,3 +80,14 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcadc-2a09-7170-b4ab-eb370
   - Default to C-style comments (//) for unknown extensions
   - CommentStyle interface has type, prefix, and optional suffix
 ---
+
+## 2026-01-17 - US-004
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcade-8c4d-72e8-8754-9842d0fb31da
+- Created test suite for `getCommentStyle` and `formatDirective` functions
+- 32 tests total covering all supported file extensions and formatting scenarios
+- Used `it.each()` pattern to test multiple extensions in a DRY manner
+- Files changed: `packages/core/src/__tests__/comment-style.test.ts`
+- **Learnings for future iterations:**
+  - Use `it.each(array)('description %s', (value) => ...)` for parameterized tests
+  - Import CommentStyle type to use with `toEqual<CommentStyle>()` for type-safe assertions
+---
