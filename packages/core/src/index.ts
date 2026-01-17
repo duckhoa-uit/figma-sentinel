@@ -140,6 +140,9 @@ export {
   type CommentStyle,
 } from './comment-style.js';
 
+// Directive Detector exports
+export { detectDirectives, type DetectedDirectives } from './directive-detector.js';
+
 // Variables Client exports
 export {
   fetchVariables,
