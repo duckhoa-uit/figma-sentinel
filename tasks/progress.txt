@@ -458,3 +458,17 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca6-90c9-72ff-91c8-22fcd
   - Use Promise.all with requests.map for parallel execution with limits
   - Use ?? operator to provide defaults from config constants
 ---
+
+## 2026-01-17 - US-013
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca9-490a-70eb-87e8-83445e37ff84
+- Created `Logger` interface in `packages/core/src/logger.ts` with debug, info, warn, error methods
+- Created `ConsoleLogger` class implementing Logger with log level filtering
+- Uses console.log for debug/info, console.warn for warn, console.error for error
+- Added `logLevel` option to constructor with priorities: debug(0) < info(1) < warn(2) < error(3)
+- Exported Logger, LogLevel type, and ConsoleLogger from barrel file
+- Files changed: `packages/core/src/logger.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use LOG_LEVEL_PRIORITY record for comparison-based filtering
+  - ConsoleLogger adds prefix tags like [DEBUG], [INFO], etc. for visibility
+  - Logger interface uses `unknown[]` for variadic args to be flexible
+---
