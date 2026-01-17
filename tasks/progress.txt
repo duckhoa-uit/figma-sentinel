@@ -491,6 +491,24 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccaa-b2ac-7364-97dc-157f8
   - Use it.each() pattern to test all log levels systematically
 ---
 
+## 2026-01-17 - US-017
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccb0-be9e-71a9-8e02-ed73f4667693
+- Created `ErrorAggregator` class in `packages/core/src/error-aggregator.ts`
+- Added `addError(error, context)` method for collecting errors with context
+- Added `addSuccess()` method to track successful operations
+- Added `getErrors()` method returning all collected errors
+- Added `getSummary()` method returning grouped summary by error type and file key
+- Added `getSuccessCount()` and `getFailureCount()` methods
+- Added `reset()` method to clear state
+- Created interfaces: ErrorContext, AggregatedError, ErrorTypeSummary, FileKeySummary, ErrorSummary
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/error-aggregator.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use Maps for grouping operations with code/fileKey as keys
+  - Timestamp errors for temporal analysis
+  - addSuccess() is needed to track successful operations for getSuccessCount()
+---
+
 ## 2026-01-17 - US-015
 Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccac-867f-764c-9e2e-b55ab1e6bf8a
 - Created `generateErrorMessage` function in `packages/core/src/error-messages.ts`
