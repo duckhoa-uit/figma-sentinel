@@ -7,9 +7,17 @@ import ora from 'ora';
 import kleur from 'kleur';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  promptForUrl,
+  promptForFile,
+  processFile,
+  LinkOptions,
+  LinkResult,
+} from './link.js';
 
 export interface InitOptions {
   cwd?: string;
+  yes?: boolean;
 }
 
 interface InitAnswers {
@@ -74,6 +82,57 @@ function generateJsonConfig(answers: InitAnswers): string {
     null,
     2
   );
+}
+
+/**
+ * Prompt user to link a Figma file after init
+ */
+async function promptToLinkFile(cwd: string): Promise<void> {
+  console.log('');
+
+  const { wantToLink } = await prompts({
+    type: 'confirm',
+    name: 'wantToLink',
+    message: 'Would you like to link a Figma file now?',
+    initial: false,
+  });
+
+  if (!wantToLink) {
+    return;
+  }
+
+  // Prompt for URL
+  const parsedUrl = await promptForUrl();
+  if (!parsedUrl) {
+    console.log(kleur.yellow('  Linking cancelled.'));
+    return;
+  }
+
+  const { fileKey, nodeId } = parsedUrl;
+
+  // Warn if no node ID
+  if (!nodeId) {
+    console.log(
+      kleur.yellow('⚠ Warning: URL has no node ID. File will be linked but not tracked for changes.')
+    );
+  }
+
+  // Prompt for file
+  const filePath = await promptForFile(cwd);
+  if (!filePath) {
+    console.log(kleur.yellow('  Linking cancelled.'));
+    return;
+  }
+
+  // Process the file
+  const result: LinkResult = { success: 0, failed: 0, skipped: 0, warnings: 0 };
+  const linkOptions: LinkOptions = {};
+
+  await processFile(filePath, fileKey, nodeId, linkOptions, result);
+
+  if (result.success > 0) {
+    console.log(kleur.green('  File linked successfully!'));
+  }
 }
 
 /**
@@ -205,6 +264,11 @@ export async function initCommand(options: InitOptions): Promise<void> {
     }
 
     spinner.succeed(kleur.green(`Configuration created: ${path.relative(cwd, configPath) || configPath}`));
+
+    // Offer to link a Figma file (skip with --yes flag)
+    if (!options.yes) {
+      await promptToLinkFile(cwd);
+    }
 
     // Display next steps
     console.log(kleur.gray('\n  Next steps:\n'));

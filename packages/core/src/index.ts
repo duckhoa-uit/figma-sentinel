@@ -126,6 +126,32 @@ export {
   type LoadConfigResult,
 } from './config.js';
 
+// URL Parser exports
+export {
+  parseFigmaUrl,
+  FigmaUrlParseError,
+  type ParsedFigmaUrl,
+} from './url-parser.js';
+
+// Comment Style exports
+export {
+  getCommentStyle,
+  formatDirective,
+  type CommentStyle,
+} from './comment-style.js';
+
+// Directive Detector exports
+export { detectDirectives, type DetectedDirectives } from './directive-detector.js';
+
+// Directive Inserter exports
+export {
+  insertDirectives,
+  appendNodeDirective,
+  replaceDirectives,
+  type InsertDirectivesOptions,
+  type InsertDirectivesResult,
+} from './directive-inserter.js';
+
 // Variables Client exports
 export {
   fetchVariables,

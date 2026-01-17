@@ -14,6 +14,7 @@
 - Use fs.rmSync with { recursive: true, force: true } for test cleanup
 - Cannot spy on ESM exports (child_process.spawnSync) - avoid mocking or use vi.mock at module level
 - Use `while (conditionVar)` instead of `while (true)` to avoid ESLint no-constant-condition error
+- CommentStyle types: 'single-line' (//, #), 'block' (/* */), 'html' (<!-- -->)
 - Zod is used for config validation - use .partial() for optional fields and check unknown fields separately
 - CLI uses commander v12, ora v5, execa v5 (CJS compatible versions)
 - Core package uses `tsc --emitDeclarationOnly` for DTS generation (not tsup --dts) to work with project references
@@ -26,607 +27,240 @@
 - Action package: use `tsc --emitDeclarationOnly` for DTS like core (tsup --dts has issues with project references)
 - For Figma Variables API: requires Enterprise plan, use @figma-variables: directive syntax
 - import * as crypto from 'crypto' instead of require('crypto') to satisfy ESLint
+- Use `workspace:*` in package.json dependencies for local workspace packages (resolves TypeScript issues)
+- insertDirectives takes an options object: { fileKey, nodeId, filePath, content, mode }
 
 ---
 
-## 2025-01-16 - US-001
-Thread: https://ampcode.com/threads/T-019bc73e-0148-701b-a29b-9e83ca62e2ad
-- Initialized monorepo with pnpm workspaces
-- Created root package.json with build, test, lint, typecheck scripts
-- Created pnpm-workspace.yaml with packages: ['packages/*']
-- Created packages/core, packages/cli, packages/action with package.json files
-- Added MIT LICENSE file
-- Added basic tsconfig.json for each package
-- Typecheck passes
-- Files changed:
-  - package.json
-  - pnpm-workspace.yaml
-  - LICENSE
-  - packages/core/package.json, packages/core/src/index.ts, packages/core/tsconfig.json
-  - packages/cli/package.json, packages/cli/src/index.ts, packages/cli/tsconfig.json
-  - packages/action/package.json, packages/action/src/index.ts, packages/action/tsconfig.json
-- **Learnings for future iterations:**
-  - tsup is used for building packages (ESM/CJS with dts)
-  - vitest is used for testing
-  - TypeScript devDependency is installed at root level
+# Link Command Feature Progress
+
+Feature branch: ralph/link-command
+PRD: tasks/prd-link-command.md
+
 ---
 
-## 2025-01-16 - US-002
-Thread: https://ampcode.com/threads/T-019bc740-0b20-7285-8050-c20bbf08cb4e
-- Configured shared TypeScript and ESLint across all packages
-- Created root tsconfig.json with project references to all packages
-- Created tsconfig.base.json with shared compiler options (strict mode, noUnusedLocals, etc.)
-- Updated each package tsconfig.json to extend tsconfig.base.json with composite: true
-- Created .eslintrc.cjs with @typescript-eslint rules
-- Created .prettierrc with consistent formatting settings
-- Added ESLint and Prettier as root devDependencies
-- Updated .gitignore to include *.tsbuildinfo
-- Files changed:
-  - package.json (added ESLint, Prettier deps, lint:fix and format scripts)
-  - tsconfig.json (new - root with project references)
-  - tsconfig.base.json (new - shared compiler options)
-  - packages/core/tsconfig.json (extends base)
-  - packages/cli/tsconfig.json (extends base, references core)
-  - packages/action/tsconfig.json (extends base, references core)
-  - .eslintrc.cjs (new)
-  - .prettierrc (new)
-  - .gitignore (added *.tsbuildinfo)
+## 2026-01-17 - US-001
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcad9-0d4a-773b-90b1-2af5217b19ef
+- Implemented `parseFigmaUrl` function in `packages/core/src/url-parser.ts`
+- Parses standard design URLs (`/design/`) and legacy file URLs (`/file/`)
+- Extracts file key from URL path and node ID from query params
+- Handles URL-encoded node IDs (decodes `%3A` to `:`)
+- Throws `FigmaUrlParseError` with descriptive messages for invalid URLs
+- Rejects FigJam (`/board/`) and prototype (`/proto/`) URLs
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/url-parser.ts`, `packages/core/src/index.ts`
 - **Learnings for future iterations:**
-  - Use .eslintrc.cjs (not .js) for CommonJS ESLint config
-  - composite: true required in package tsconfigs for project references
-  - cli and action packages reference core package
+  - URL parsing uses standard `new URL()` API
+  - File key is the second segment in the path (after the URL type)
+  - Node ID comes from `node-id` query parameter
 ---
 
-## 2025-01-16 - US-003
-Thread: https://ampcode.com/threads/T-019bc742-9da0-70fe-8f4c-58983031add0
-- Created core package types by cloning types.ts from source repository
-- Exported all types: FigmaDirective, FigmaNode, NormalizedSpec, ChangelogEntry, SentinelConfig, etc.
-- Updated packages/core/src/index.ts to re-export all types
-- Added zod and fast-glob as dependencies in packages/core/package.json
-- Package.json exports already configured for ESM and CommonJS (from US-001)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/types.ts (new)
-  - packages/core/src/index.ts (updated)
-  - packages/core/package.json (added dependencies)
-  - pnpm-lock.yaml
+## 2026-01-17 - US-002
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcada-9c57-704a-8ef8-87be0f9dab13
+- Created comprehensive test suite for `parseFigmaUrl` function
+- Tests cover: valid design URLs (with/without node ID), legacy file URLs, URL-encoded node IDs, non-Figma URLs, FigJam/prototype rejection, and malformed URLs
+- 19 tests total, all passing
+- Files changed: `packages/core/src/__tests__/url-parser.test.ts`
 - **Learnings for future iterations:**
-  - Use `.js` extension in imports for ESM compatibility (e.g., `from './types.js'`)
-  - All Figma-related types are in types.ts (FigmaNode, FigmaFill, FigmaEffect, etc.)
-  - SentinelConfig defines the main configuration interface
+  - Test pattern uses `describe` blocks to group related tests
+  - Use `.toThrow(ErrorClass)` and `.toThrow('message')` for testing error messages
+  - Import error classes from source to verify correct error types are thrown
 ---
 
-## 2025-01-16 - US-004
-Thread: https://ampcode.com/threads/T-019bc744-c536-778b-98d7-6cd7342e9654
-- Migrated normalizer module from source to packages/core/src/normalizer.ts
-- Updated imports to use local types with .js extension
-- Exported normalizeNode, toStableJson, createNormalizer, NormalizerConfig from index.ts
-- Cloned and adapted 18 tests to packages/core/src/__tests__/normalizer.test.ts
-- Installed vitest at root level
-- Updated cli and action packages to use --passWithNoTests
-- All 18 normalizer tests pass
-- Typecheck passes
-- Files changed:
-  - packages/core/src/normalizer.ts (new)
-  - packages/core/src/__tests__/normalizer.test.ts (new)
-  - packages/core/src/index.ts (added normalizer exports)
-  - packages/cli/package.json (--passWithNoTests)
-  - packages/action/package.json (--passWithNoTests)
-  - package.json (added vitest)
+## 2026-01-17 - US-003
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcadc-2a09-7170-b4ab-eb3704ab6481
+- Created `getCommentStyle` function in `packages/core/src/comment-style.ts`
+- Returns correct comment prefix/suffix for file extensions:
+  - `//` for .ts, .tsx, .js, .jsx, .swift, .kt, .go, .rs (default)
+  - `#` for .py, .rb, .sh, .yaml, .yml
+  - `/* */` for .css, .scss, .less
+  - `<!-- -->` for .html, .vue, .svelte
+- Created `formatDirective` function to format @figma-file and @figma-node directives
+- Exported both functions and CommentStyle type from index.ts
+- Files changed: `packages/core/src/comment-style.ts`, `packages/core/src/index.ts`
 - **Learnings for future iterations:**
-  - Test assertions may need adjustment for sorted keys (color object keys sorted alphabetically)
-  - Use `describe` blocks from vitest for test organization
+  - Default to C-style comments (//) for unknown extensions
+  - CommentStyle interface has type, prefix, and optional suffix
 ---
 
-## 2025-01-16 - US-005
-Thread: https://ampcode.com/threads/T-019bc748-28f4-7289-915a-1d77290e8186
-- Migrated parser module from source to packages/core/src/parser.ts
-- Updated imports to use local types with .js extension and ESM-style fast-glob import
-- Exported parseFile, parseDirectives, parseDirectivesSync from index.ts
-- Cloned and adapted 14 tests to packages/core/src/__tests__/parser.test.ts
-- Created test fixtures directory with 7 TSX fixture files
-- Added @types/node as root devDependency for node type definitions
-- Updated packages/core/tsconfig.json to exclude fixtures from typecheck
-- All 32 tests pass (18 normalizer + 14 parser)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/parser.ts (new)
-  - packages/core/src/__tests__/parser.test.ts (new)
-  - packages/core/src/__tests__/fixtures/*.tsx (7 new fixture files)
-  - packages/core/src/index.ts (added parser exports)
-  - packages/core/tsconfig.json (added types and exclude patterns)
-  - package.json (added @types/node)
-  - pnpm-lock.yaml
+## 2026-01-17 - US-004
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcade-8c4d-72e8-8754-9842d0fb31da
+- Created test suite for `getCommentStyle` and `formatDirective` functions
+- 32 tests total covering all supported file extensions and formatting scenarios
+- Used `it.each()` pattern to test multiple extensions in a DRY manner
+- Files changed: `packages/core/src/__tests__/comment-style.test.ts`
 - **Learnings for future iterations:**
-  - TSX fixture files must be excluded from TypeScript typecheck to avoid React/JSX errors
-  - Use ESM import style for fast-glob: `import fg from 'fast-glob'`
-  - Test fixtures go in src/__tests__/fixtures/ directory
-  - Use vi.spyOn() and vi.restoreAllMocks() for console mocking in vitest
-- JSON fixture files can be loaded with fs.readFileSync in tests
-- Rate limit tests need increased timeout (10000ms, 30000ms) due to retry backoff
+  - Use `it.each(array)('description %s', (value) => ...)` for parameterized tests
+  - Import CommentStyle type to use with `toEqual<CommentStyle>()` for type-safe assertions
 ---
 
-## 2025-01-16 - US-006
-Thread: https://ampcode.com/threads/T-019bc74d-b5b9-7504-8226-6b7910d086c1
-- Migrated figma-client module from source to packages/core/src/figma-client.ts
-- Updated imports to use local types with .js extension
-- Uses native fetch (Node 18+) with exponential backoff for rate limiting
-- Exported fetchNodes, FetchedNode, FetchResult, FetchError from index.ts
-- Created sample-node.json fixture in src/__tests__/fixtures/
-- Adapted 12 tests to packages/core/src/__tests__/figma-client.test.ts (vitest)
-- All 44 tests pass (18 normalizer + 14 parser + 12 figma-client)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/figma-client.ts (new)
-  - packages/core/src/__tests__/figma-client.test.ts (new)
-  - packages/core/src/__tests__/fixtures/sample-node.json (new)
-  - packages/core/src/index.ts (added figma-client exports)
+## 2026-01-17 - US-005
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcadf-d278-775c-b52e-3a142ea214c3
+- Created `detectDirectives` function in `packages/core/src/directive-detector.ts`
+- Detects @figma-file directive and extracts file key
+- Detects all @figma-node directives and extracts node IDs (no duplicates)
+- Supports detection in //, #, /* */, and HTML comment styles
+- Returns `DetectedDirectives` interface: `{ hasFileDirective, fileKey, nodeIds }`
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/directive-detector.ts`, `packages/core/src/index.ts`
 - **Learnings for future iterations:**
-  - Use fileURLToPath and path.dirname for __dirname equivalent in ESM
-  - Rate limit retry tests need increased timeout due to actual sleep delays
-  - Mock fetch with vi.fn().mockResolvedValue/mockRejectedValue in vitest
+  - Use multiple regex patterns for different comment styles rather than one complex pattern
+  - Global regex patterns need lastIndex reset before each use
+  - TypeScript requires explicit null checks for regex match groups
 ---
 
-## 2025-01-16 - US-007
-Thread: https://ampcode.com/threads/T-019bc750-7e00-74f0-ab11-4cba1987aa46
-- Migrated storage module from source to packages/core/src/storage.ts
-- Updated imports to use local types with .js extension and local normalizer
-- Exported createNormalizedSpec, saveSpec, loadSpec, loadAllSpecs, detectChanges and more from index.ts
-- Created 29 unit tests in packages/core/src/__tests__/storage.test.ts
-- All 73 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/storage.ts (new)
-  - packages/core/src/__tests__/storage.test.ts (new)
-  - packages/core/src/index.ts (added storage exports)
+## 2026-01-17 - US-006
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae2-121c-7456-b035-24bdc952703e
+- Created `insertDirectives` function in `packages/core/src/directive-inserter.ts`
+- Supports three modes: 'insert' (new directives), 'append' (add node to existing), 'replace' (replace all)
+- Handles shebangs by inserting directives after the shebang line
+- Detects and preserves original line endings (LF or CRLF)
+- Adds blank line between directives and existing content
+- Created convenience functions: `appendNodeDirective`, `replaceDirectives`
+- Exported all functions and types from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/directive-inserter.ts`, `packages/core/src/index.ts`
 - **Learnings for future iterations:**
-  - Storage uses fs.mkdtempSync for temp directories in tests
-  - Use fs.rmSync with { recursive: true, force: true } for cleanup
-  - COMPONENT_SET type nodes have variants extracted as nested specs
-  - Content hash uses SHA-256 truncated to 16 chars
+  - TypeScript strict mode requires explicit undefined checks for array access
+  - Use split(/\r?\n/) to handle both LF and CRLF line endings
+  - Detect line ending style with content.includes('\r\n')
 ---
 
-## 2025-01-16 - US-008
-Thread: https://ampcode.com/threads/T-019bc753-9842-776f-a985-6ef6ee4f37aa
-- Migrated differ module from source to packages/core/src/differ.ts
-- Updated imports to use local types with .js extension and local storage module
-- Exported generateChangelogEntries, generateChangelogMarkdown, generatePRBody, diffSpecs, diffVariants, formatValue, formatColor, formatPropertyPath, getRelativeImagePath, getRelativePreviousImagePath, attachImagePaths, writeChangelog, generateChangelog from index.ts
-- Added ExportedImage and ImageExportResult types to differ.ts (minimal interface for attachImagePaths)
-- Created 46 comprehensive tests in packages/core/src/__tests__/differ.test.ts
-- All 119 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/differ.ts (new)
-  - packages/core/src/__tests__/differ.test.ts (new)
-  - packages/core/src/index.ts (added differ exports)
+## 2026-01-17 - US-007
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae4-c441-728f-8ef8-311d607c09eb
+- Created test suite for `detectDirectives` function (16 tests)
+- Created test suite for `insertDirectives`, `appendNodeDirective`, and `replaceDirectives` functions (25 tests)
+- Tests cover: detection in //, #, /* */, <!-- --> comment styles, insertion into empty/existing files, shebang handling, line ending preservation, append/replace modes
+- 41 tests total, all passing
+- Files changed: `packages/core/src/__tests__/directive-detector.test.ts`, `packages/core/src/__tests__/directive-inserter.test.ts`
 - **Learnings for future iterations:**
-  - No source test file existed for differ - created comprehensive tests from scratch
-  - ExportedImage/ImageExportResult types defined locally in differ.ts to avoid circular dependency with image-exporter
-  - formatColor outputs uppercase hex with optional opacity percentage
-  - formatPropertyPath transforms technical paths to human-readable labels (fills -> Fill, fontSize -> font size)
+  - Vitest doesn't have `toStartWith` matcher - use `expect(str.startsWith('...')).toBe(true)` instead
+  - Use `it.each()` pattern for parameterized tests
+  - Import types from source for type-safe assertions with `toEqual<Type>()`
 ---
 
-## 2025-01-16 - US-009
-Thread: https://ampcode.com/threads/T-019bc758-0987-734a-acee-b309df02f85a
-- Migrated image-exporter module from source to packages/core/src/image-exporter.ts
-- Updated imports to use local types with .js extension and local storage module for sanitizeNodeId
-- Exported exportImages, exportImagesForMultipleFiles, cleanupRemovedImages, getImagePath, getPreviousImagePath from index.ts
-- Also exported ExportedImage, ImageExportResult, ImageExportError, ExportImagesInput types
-- Updated differ.ts to import ExportedImage/ImageExportResult from image-exporter instead of defining locally
-- Adapted 18 tests to packages/core/src/__tests__/image-exporter.test.ts (converted from Jest to Vitest)
-- All 137 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ + 18 image-exporter)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/image-exporter.ts (new)
-  - packages/core/src/__tests__/image-exporter.test.ts (new)
-  - packages/core/src/index.ts (added image-exporter exports)
-  - packages/core/src/differ.ts (import types from image-exporter)
+## 2026-01-17 - US-008
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae7-8ff2-74ce-94a1-c38b26bd8ffd
+- Created `linkCommand` in `packages/cli/src/commands/link.ts`
+- Registered command in `packages/cli/src/index.ts` with all options
+- Command accepts: Figma URL as positional arg, `-f/--file` and `-p/--path` for target files, `-y/--yes` for auto-confirm, `--force` for replacing directives, `-c/--cwd` for working directory
+- Added comprehensive help text with usage examples via `addHelpText('after', ...)`
+- Uses ora spinner and kleur for colored output
+- Processes multiple files with summary at end
+- Fixed workspace:* dependency for @khoavhd/figma-sentinel-core to use local workspace
+- Files changed: `packages/cli/src/commands/link.ts`, `packages/cli/src/index.ts`, `packages/cli/package.json`
 - **Learnings for future iterations:**
-  - Use vi.stubGlobal('fetch', ...) in Vitest to mock global fetch
-  - ExportedImage has `imagePath` field (not `path`)
-  - Use fs.rmSync with { recursive: true, force: true } for test cleanup
-  - Image paths use sanitizeNodeId from storage module (e.g., 1:23 -> 1-23.png)
+  - Use `workspace:*` in package.json dependencies to reference local workspace packages (fixes TypeScript resolution issues)
+  - `insertDirectives` takes an options object, not separate parameters
+  - Commander's `addHelpText('after', ...)` adds additional help sections after the standard help
 ---
 
-## 2025-01-16 - US-010
-Thread: https://ampcode.com/threads/T-019bc75c-95db-7409-99e2-e48a5c755bb7
-- Migrated markdown-exporter module from source to packages/core/src/markdown-exporter.ts
-- Updated imports to use local types with .js extension and local storage module for sanitizeNodeId
-- Exported exportSpecsAsMarkdown, generateMarkdownFromSpec, isFigmaExtractorAvailable, getMarkdownFilePath, generateMarkdownWithExtractor, saveMarkdownSpec, exportSpecAsMarkdown, removeMarkdownSpec, MarkdownExportResult from index.ts
-- Created 25 unit tests in packages/core/src/__tests__/markdown-exporter.test.ts
-- All 162 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ + 18 image-exporter + 25 markdown-exporter)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/markdown-exporter.ts (new)
-  - packages/core/src/__tests__/markdown-exporter.test.ts (new)
-  - packages/core/src/index.ts (added markdown-exporter exports)
+## 2026-01-17 - US-009
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaed-c11f-711f-b7a8-dd9acfde7f5b
+- Verified all acceptance criteria already implemented in US-008
+- Core logic includes: URL parsing, file validation, directive detection, directive insertion
+- Uses ora spinner and kleur for user feedback
+- Shows warning when URL has no node ID
+- Files changed: none (verified existing implementation)
 - **Learnings for future iterations:**
-  - Cannot spy on ESM module exports directly (spawnSync) - use vi.mock instead or skip mocking when not needed
-  - Markdown exporter optionally uses figma-extractor binary if available, otherwise falls back to built-in generation
-  - extractColors, extractTypography, extractLayoutRules, extractCornerRadius, extractEffects are internal helpers
-  - Use console.info for informational messages (not warnings/errors) about optional features
+  - US-009 was fully implemented as part of US-008 due to natural code flow
+  - All quality checks pass: typecheck, tests (340 tests), lint (warnings only)
 ---
 
-## 2025-01-16 - US-011
-Thread: https://ampcode.com/threads/T-019bc762-1157-700a-a4d4-13c9b1a186a6
-- Created runSentinel orchestrator in packages/core/src/sentinel.ts
-- Migrated from source index.ts, keeping only runSentinel function and types
-- Removed CLI main() function (will go in CLI package per US-014)
-- Added SentinelOptions.config parameter to allow passing config directly
-- Included inline config loading (minimal version - full Zod validation in US-012)
-- Exported runSentinel, SentinelResult, SentinelOptions, DEFAULT_CONFIG from index.ts
-- Created 23 comprehensive tests in packages/core/src/__tests__/sentinel.test.ts
-- All 185 tests pass (18 normalizer + 14 parser + 12 figma-client + 29 storage + 46 differ + 18 image-exporter + 25 markdown-exporter + 23 sentinel)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/sentinel.ts (new)
-  - packages/core/src/__tests__/sentinel.test.ts (new)
-  - packages/core/src/index.ts (added sentinel exports)
+## 2026-01-17 - US-010
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaef-2d75-72bf-8d3f-10dcc9e13330
+- Implemented conflict resolution for existing directives in `packages/cli/src/commands/link.ts`
+- Added `resolveConflict` function that handles:
+  - Interactive prompts with 'Add node to existing', 'Replace all', 'Cancel' options
+  - 'Add node' option only shown if same file key and new node ID provided
+  - Duplicate node ID detection (skips with info message)
+  - Warning display when file keys don't match
+- `--force` flag: always replaces without prompt
+- `--yes` flag: auto-add if same key, auto-replace if different
+- Uses `prompts` library for interactive selection
+- Files changed: `packages/cli/src/commands/link.ts`
 - **Learnings for future iterations:**
-  - runSentinel accepts config via options parameter OR loads from filesystem
-  - Use `while (continueSearch)` instead of `while (true)` to avoid ESLint no-constant-condition error
-  - SentinelResult includes changeResult, changelogPath, prBodyPath for CI integrations
-  - Integration tests mock fetch with vi.stubGlobal and create temp directories with fixture files
+  - Use `prompts` library with type: 'select' for choice menus
+  - Stop spinner before prompting (spinner.stop()) to avoid display issues
+  - Check for undefined response.action to handle user Ctrl+C cancellation
 ---
 
-## 2025-01-16 - US-012
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc767-8e73-72db-b41b-f7b2b634fd1f
-- Migrated config module from source to packages/core/src/config.ts
-- Replaced manual validation with Zod schema (SentinelConfigSchema)
-- Kept DEFAULT_CONFIG, mergeConfig, createDefaultConfigFile, loadConfig, loadConfigFromFile functions
-- Exported validateConfig, loadConfig, DEFAULT_CONFIG, SentinelConfigSchema, and more from index.ts
-- Updated sentinel.ts to import config utilities from config.js instead of defining locally
-- Created 37 comprehensive unit tests in packages/core/src/__tests__/config.test.ts
-- All 222 tests pass (185 previous + 37 config tests)
-- Typecheck passes
-- Files changed:
-  - packages/core/src/config.ts (new)
-  - packages/core/src/__tests__/config.test.ts (new)
-  - packages/core/src/index.ts (added config exports)
-  - packages/core/src/sentinel.ts (removed duplicate code, imports from config.js)
+## 2026-01-17 - US-011
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf1-4645-76a9-a900-e067169ff5c7
+- Verified batch linking functionality already implemented in US-008
+- Support for multiple `--file` arguments via Commander's `<path...>` syntax
+- Each file processed independently with progress spinner
+- Partial failures handled gracefully (continue processing remaining files)
+- Summary displayed at end with success/failed/skipped/warning counts
+- Files changed: none (verified existing implementation)
 - **Learnings for future iterations:**
-  - Zod .partial() allows all fields to be optional for partial validation
-  - Unknown field validation must be done separately since Zod ignores unknown fields by default
-  - Use `while (continueSearch)` pattern from config.ts findConfigFile (pattern already established)
-  - Config module exports SentinelConfigSchema for programmatic validation
+  - Commander's `<arg...>` variadic syntax automatically collects multiple values into an array
+  - Batch linking was fully implemented as part of US-008 due to natural code flow
 ---
 
-## 2025-01-16 - US-014
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc76f-81f7-757d-93ff-9d91dd451800
-- Implemented CLI sync command in packages/cli/src/commands/sync.ts
-- Uses ora spinner for 'Scanning for directives...', 'Fetching from Figma...', 'Detecting changes...'
-- Uses kleur for colorized success/error/warning messages
-- Supports --dry-run, --cwd, --config flags
-- Exit 0 on success, 1 on error
-- Fixed core package build to generate .d.ts files (added tsc --emitDeclarationOnly after tsup)
-- Added tsup as root devDependency
-- Typecheck passes, all 222 tests pass
-- Files changed:
-  - packages/cli/src/commands/sync.ts (new)
-  - packages/cli/src/index.ts (imports and uses syncCommand)
-  - packages/core/package.json (fixed DTS generation)
-  - package.json (added tsup devDependency)
-  - pnpm-lock.yaml
+## 2026-01-17 - US-012
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf3-237c-74b2-8404-da27dc36de1b
+- Implemented interactive mode for link command
+- Added `promptForUrl()` function that prompts for Figma URL and re-prompts on invalid input
+- Added `promptForFile()` function that prompts for file path and re-prompts if file doesn't exist
+- Added `runInteractiveMode()` function that orchestrates the interactive flow
+- After successful link: prompts "Link another file?" to link multiple files with same URL
+- When no URL or file args provided, command enters interactive mode automatically
+- Extracted `showSummary()` helper for code reuse between batch and interactive modes
+- Files changed: `packages/cli/src/commands/link.ts`
 - **Learnings for future iterations:**
-  - tsup DTS generation can fail with project references - use tsc --emitDeclarationOnly instead
-  - CLI packages need core package to be built first so .d.ts files exist
-  - Use ora v5 (not v6+) for CJS compatibility
-  - Suppress console output from core runSentinel when using spinners
+  - Use `while (!isValid)` pattern for validation loops (ESLint-friendly)
+  - Return null from prompt functions when user cancels (Ctrl+C) for clean abort handling
+  - Interactive mode can fall back to non-interactive if URL is provided but file is not
 ---
 
-## 2025-01-16 - US-013
-Thread: https://ampcode.com/threads/T-019bc774-aec1-76eb-bca3-766d4cbba311
-- CLI package structure already complete from previous iterations (US-001, US-014)
-- Verified packages/cli/package.json has bin entry pointing to dist/index.js
-- Verified all required dependencies are present: commander, prompts, ora, kleur, cosmiconfig, fs-extra, execa
-- Verified @khoavhd/figma-sentinel-core workspace dependency is configured
-- Verified packages/cli/src/index.ts has shebang and commander setup
-- Typecheck passes
-- Files verified (no changes needed):
-  - packages/cli/package.json
-  - packages/cli/src/index.ts
+## 2026-01-17 - US-013
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf5-22bc-738b-8061-ec9c899c11ba
+- Created comprehensive test suite for `linkCommand` function in `packages/cli/src/__tests__/link.test.ts`
+- 19 tests covering:
+  - Basic link command with URL and file (design URLs, legacy file URLs, URLs without node ID)
+  - `--path` alias works same as `--file`
+  - Error handling for non-existent files
+  - Error handling for invalid URLs (non-Figma, FigJam)
+  - `--yes` flag auto-add/auto-replace behavior
+  - `--force` flag replacing directives
+  - Batch linking with multiple files
+  - Partial batch failure continues processing
+  - Duplicate node ID handling
+  - `--cwd` option for relative path resolution
+  - Comment style by file extension (TS, Python, CSS, HTML)
+- All tests pass with typecheck and lint (warnings only)
+- Files changed: `packages/cli/src/__tests__/link.test.ts`
 - **Learnings for future iterations:**
-  - CLI package was incrementally built across multiple stories
-  - US-001 created initial structure, US-014 added sync command and all dependencies
+  - Use vi.spyOn(process, 'exit') to mock process.exit and test error paths
+  - Create test fixtures in `src/__tests__/fixtures/` directory and cleanup with fs.rmSync
+  - Use `createTestFile` helper function for DRY test setup
 ---
 
-## 2025-01-16 - US-015
-Thread: https://ampcode.com/threads/T-019bc775-ea7c-701d-b8df-63861afe7414
-- Implemented CLI check command in packages/cli/src/commands/check.ts
-- Uses ora spinner for checking FIGMA_TOKEN, configuration, and scanning directives
-- Uses kleur for colorized success/error/warning messages
-- Checks for config file existence and validity using core's validateConfig
-- Checks for FIGMA_TOKEN environment variable (warns if not set)
-- Parses directives and reports count without fetching from Figma
-- Displays summary: X files with directives, Y total nodes, Z unique Figma files
-- Shows detailed file list with file keys and node IDs
-- Supports --cwd, --config flags
-- Exit 0 on success, 1 on warnings/errors
-- Typecheck passes, all 222 tests pass
-- Files changed:
-  - packages/cli/src/commands/check.ts (new)
-  - packages/cli/src/index.ts (imports and uses checkCommand)
+## 2026-01-17 - US-014
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcb85-7a63-76a4-8b4b-5d2e2d070e61
+- Verified US-014 was already fully implemented in a previous iteration
+- `packages/cli/src/commands/init.ts` has `promptToLinkFile` function that:
+  - Asks "Would you like to link a Figma file now?" after config creation
+  - Prompts for Figma URL and target file using imported functions from link.ts
+  - If user cancels, init still completes successfully
+- `--yes` flag in init command skips the link prompt (line 269)
+- All acceptance criteria verified as passing
+- Files changed: `tasks/prd.json` (marked as passing)
 - **Learnings for future iterations:**
-  - CLI check command provides dry-run validation without Figma API calls
-  - Use ora spinner's warn() method for non-fatal warnings (FIGMA_TOKEN not set)
-  - Suppress loadConfig's console.log by temporarily overriding console.log
-  - Show detailed summary with file paths relative to cwd for better readability
+  - Check if previous iterations already implemented the story before starting work
+  - Init command reuses link command functions via imports for consistency
 ---
 
-## 2025-01-16 - US-016
-Thread: https://ampcode.com/threads/T-019bc778-ca3a-720a-b658-c6ad77ec9a79
-- Implemented CLI diff command in packages/cli/src/commands/diff.ts
-- Accepts node-id as positional argument with validation
-- Fetches current node from Figma API using fetchNodes from core
-- Loads existing spec from .design-specs using loadSpec from core
-- Displays side-by-side diff of properties with colors (kleur)
-- Uses diffSpecs, formatValue, formatPropertyPath from core for change detection
-- Highlights previous values in red, new values in green
-- Supports --file-key, --cwd, --config flags
-- Uses ora spinner for loading states
-- Removed --dts from CLI build script (CLI doesn't need type definitions)
-- Removed types field from CLI package.json
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - packages/cli/src/commands/diff.ts (new)
-  - packages/cli/src/index.ts (imports and uses diffCommand)
-  - packages/cli/package.json (removed --dts flag and types field)
+## 2026-01-17 - US-015
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcb87-2121-752c-94b5-0afd04d046ca
+- Updated README.md with link command documentation
+- Added `### figma-sentinel link` section after `### figma-sentinel variables`
+- Included command syntax with all options (-f, -p, -y, --force, -c)
+- Added "How it works" explanation and usage examples (basic, batch, force, yes)
+- Updated Quick Start section with tip about link command
+- Added "Easy Linking" to Features list
+- Files changed: `README.md`
 - **Learnings for future iterations:**
-  - CLI tools don't need .d.ts files, remove --dts from tsup build
-  - Use `const` for variables that are validated but not reassigned (prefer-const)
-  - Cast `unknown` node types to `Record<string, unknown>` for property iteration
-  - Use early return with null check for array index access to avoid TS18048 errors
----
-
-## 2025-01-16 - US-017
-Thread: https://ampcode.com/threads/T-019bc77e-682e-71ff-9eaa-fbdf80087c55
-- Implemented CLI init command in packages/cli/src/commands/init.ts
-- Uses prompts for interactive config setup: format (js/json/package.json), specs directory, file patterns, export images, image scale
-- Supports JS config (figma-sentinel.config.js), JSON config (.figma-sentinelrc.json), and package.json key
-- Checks for existing config and prompts for overwrite confirmation
-- Generates config file based on user selection with proper content for each format
-- Displays next steps after creation with example directive syntax
-- Supports --cwd flag for working directory
-- Uses ora spinner for creation status, kleur for colored output
-- Typecheck passes, all 222 tests pass
-- Files changed:
-  - packages/cli/src/commands/init.ts (new)
-  - packages/cli/src/index.ts (imports and uses initCommand)
-- **Learnings for future iterations:**
-  - Use explicit type annotations (p: string) in map callbacks to avoid implicit any errors
-  - prompts library allows select, text, confirm, number prompt types
-  - Always check if config file exists before creating to avoid accidental overwrites
-  - Use <keyof AnswerType> generic with prompts for type safety
----
-
-## 2025-01-16 - US-018
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc781-2739-7348-ae24-ff4c55571e8b
-- Implemented cosmiconfig loader in packages/cli/src/config.ts
-- Uses cosmiconfig with moduleName 'figma-sentinel' for flexible config search
-- Supports: package.json (figma-sentinel key), .figma-sentinelrc*, figma-sentinel.config.js/cjs
-- Merges loaded config with defaults from core using mergeConfig
-- Validates configuration with Zod schema from core using validateConfig
-- Implements config caching for performance within single CLI run (clearConfigCache to reset)
-- Updated sync, check, diff commands to use new resolveConfig function
-- Removed manual config loading code from commands (cleaner and more consistent)
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - packages/cli/src/config.ts (new)
-  - packages/cli/src/commands/sync.ts (uses resolveConfig)
-  - packages/cli/src/commands/check.ts (simplified, uses resolveConfig)
-  - packages/cli/src/commands/diff.ts (uses resolveConfig)
-- **Learnings for future iterations:**
-  - cosmiconfig v9 uses named exports: `import { cosmiconfig } from 'cosmiconfig'`
-  - Use CosmiconfigResult type from cosmiconfig for type-safe result handling
-  - Cache implementation uses module-level variables (simple but effective for CLI)
-  - resolveConfig(cwd, configPath?) provides unified API for commands
----
-
-## 2025-01-16 - US-019
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc784-ef31-7217-84de-38b45fc8b55e
-- Created GitHub Action structure in packages/action/action.yml
-- Defined action metadata with name, description, branding (layers icon, purple color)
-- Added inputs: figma-token (required), config-path, dry-run, create-pr, pr-title, pr-labels
-- Added outputs: has-changes, changelog-path, pr-number, pr-url
-- Added dependencies: @actions/core, @actions/github, @actions/exec, @khoavhd/figma-sentinel-core
-- Updated src/index.ts with placeholder implementation using @actions/core
-- Uses node20 runtime for GitHub Actions
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - packages/action/action.yml (new)
-  - packages/action/package.json (added dependencies)
-  - packages/action/src/index.ts (updated with @actions/core usage)
-  - pnpm-lock.yaml
-- **Learnings for future iterations:**
-  - GitHub Actions use action.yml at package root to define inputs/outputs
-  - Use node20 as the runtime (LTS version)
-  - @actions/core provides getInput, setOutput, setFailed, exportVariable
-  - Action package should include action.yml in files array for npm publishing
----
-
-## 2025-01-16 - US-020
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc788-66f4-75da-861e-6c24411aecf7
-- Implemented GitHub Action main script in packages/action/src/index.ts
-- Fixed TypeScript errors: loadConfig returns LoadConfigResult with .config property
-- Fixed ChangeDetectionResult usage: uses `changed` not `modified`, and may be undefined
-- Uses @actions/core getInput/setOutput for input/output handling
-- Sets FIGMA_TOKEN from input to environment via core.exportVariable
-- Calls runSentinel from core package with config and dryRun options
-- Sets outputs: has-changes (boolean as string), changelog-path
-- Uses core.setFailed on errors for proper GitHub Actions error handling
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - packages/action/src/index.ts (fixed type errors)
-- **Learnings for future iterations:**
-  - loadConfig() returns { config, configPath } not the config directly
-  - ChangeDetectionResult has `changed` property not `modified`
-  - SentinelResult.changeResult may be undefined - use nullish coalescing for safety
----
-
-## 2025-01-16 - US-021
-Thread: https://ampcode.com/threads/T-019bc78b-9a30-75de-b411-5878a369a4f8
-- Implemented PR creation module in packages/action/src/pr.ts
-- createOrUpdatePR function uses @actions/github Octokit to create/update PRs
-- Reads PR body from generated PR_BODY.md file (result.prBodyPath)
-- Supports configurable title, labels, and reviewers from inputs
-- Checks for existing open PR on the branch and updates instead of creating new
-- Sets pr-number and pr-url outputs on success
-- Added pr-reviewers input to action.yml for requesting reviewers
-- Added parseLabels and parseReviewers helpers to split comma-separated input strings
-- Added getCurrentBranch and getBaseBranch helpers using github.context
-- Updated index.ts to integrate PR creation when create-pr=true and hasChanges=true
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - packages/action/src/pr.ts (new)
-  - packages/action/src/index.ts (integrated PR creation)
-  - packages/action/action.yml (added pr-reviewers input)
-- **Learnings for future iterations:**
-  - Use nested if check for array index access to avoid TS18048 "possibly undefined" errors
-  - @actions/github getOctokit requires GITHUB_TOKEN environment variable
-  - github.context provides repo owner/name and event context (eventName, ref, payload)
-  - PR creation skipped in dry-run mode for safety
----
-
-## 2025-01-16 - US-022
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc78e-991e-765a-b115-6a2593d37907
-- Created .github/workflows/ci.yml for automated CI testing
-- Runs on push to main and pull_request events
-- Uses pnpm/action-setup@v4 with pnpm 9
-- Uses setup-node@v4 with cache enabled
-- Build matrix: Node 18 and Node 20
-- Steps: checkout, setup pnpm, setup node, install, build, lint, typecheck, test
-- Added concurrency group to cancel in-progress runs on same ref
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - .github/workflows/ci.yml (new)
-- **Learnings for future iterations:**
-  - Use pnpm/action-setup@v4 for pnpm installation in GitHub Actions
-  - Use --frozen-lockfile for reproducible installs in CI
-  - Add concurrency group to avoid redundant CI runs
----
-
-## 2025-01-16 - US-023
-Thread: https://ampcode.com/threads/T-019bc790-248f-72ba-b612-41b094fac7c9
-- Added @changesets/cli as dev dependency for versioning and publishing
-- Created .changeset/config.json with access: public for npm publishing
-- Created .github/workflows/release.yml for automated publishing
-- Workflow triggers on push to main, uses changesets/action@v1
-- Added changeset, version, and release scripts to root package.json
-- Configured with id-token permission for npm provenance
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - .changeset/config.json (new)
-  - .github/workflows/release.yml (new)
-  - package.json (added changeset scripts and @changesets/cli dep)
-  - pnpm-lock.yaml
-- **Learnings for future iterations:**
-  - Use changesets/action@v1 for GitHub Actions integration
-  - NPM_TOKEN secret required for npm publishing
-  - id-token: write permission needed for npm provenance
-  - Use pnpm changeset publish for monorepo package publishing
----
-
-## 2025-01-16 - US-025
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc794-6086-75bf-80af-9ac2b5140644
-- Created example workflow files for users to copy and customize
-- Created examples/workflows/scheduled-sync.yml for cron-based daily sync
-- Created examples/workflows/on-push-sync.yml for push-triggered sync with path filters
-- Created examples/workflows/manual-sync.yml for workflow_dispatch with configurable inputs
-- All workflows include detailed comments explaining each section
-- Features: PR creation, notifications, debug mode, artifact uploads, job summaries
-- Typecheck passes
-- Files changed:
-  - examples/workflows/scheduled-sync.yml (new)
-  - examples/workflows/on-push-sync.yml (new)
-  - examples/workflows/manual-sync.yml (new)
-- **Learnings for future iterations:**
-  - Use workflow_dispatch inputs for configurable manual triggers
-  - GITHUB_STEP_SUMMARY for rich job output
-  - Concurrency groups prevent overlapping runs
----
-
-## 2025-01-16 - US-024
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc792-06b0-74bd-9ca3-986bab809cf9
-- Created comprehensive README.md with project overview and features
-- Added Installation section covering npm, pnpm, and GitHub Action
-- Added Quick Start guide with directive syntax examples
-- Added Configuration section with all options and defaults table
-- Added CLI Commands section (sync, check, init, diff) with examples
-- Added GitHub Action Usage with basic and advanced workflow examples
-- Added Programmatic Usage section for core library
-- Added Output Structure section explaining .design-specs directory layout
-- All 222 tests pass, typecheck passes
-- Files changed:
-  - README.md (new)
-- **Learnings for future iterations:**
-  - README structure follows: Overview → Features → Installation → Quick Start → Configuration → CLI → Action → Programmatic → Output → Contributing → License
-  - Use tables for configuration options and action inputs/outputs for clarity
-  - Include code examples for all major features
----
-
-## 2025-01-16 - US-026
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc795-f7bd-70cc-8ccc-6d5caa763b4f
-- Created CONTRIBUTING.md with comprehensive contribution guidelines
-  - Development setup with prerequisites (Node.js 18+, pnpm 9+)
-  - Project structure overview
-  - Available scripts reference
-  - Development workflow guide
-  - Coding standards and style guidelines
-  - Testing instructions
-  - PR process and changesets usage
-  - Issue reporting and feature request guidance
-- Created CHANGELOG.md with initial unreleased entry
-  - Follows Keep a Changelog format
-  - Lists all initial features across core, CLI, and action packages
-- Created .npmrc with pnpm configuration (engine-strict, auto-install-peers)
-- LICENSE already exists from US-001
-- Typecheck passes
-- Files changed:
-  - CONTRIBUTING.md (new)
-  - CHANGELOG.md (new)
-  - .npmrc (new)
-- **Learnings for future iterations:**
-  - CONTRIBUTING.md structure: Setup → Structure → Scripts → Workflow → Standards → Testing → PR Process
-  - Use Keep a Changelog format for CHANGELOG.md
-  - .npmrc engine-strict=true enforces Node.js version requirements
----
-
-## 2025-01-16 - US-027
-Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bc79c-a1c4-77cd-8006-91b60822654f
-- Implemented Figma Variables API support (design tokens)
-- Created packages/core/src/variables-client.ts with:
-  - fetchVariables() and fetchVariablesForDirectives() functions
-  - normalizeVariable() and normalizeVariableCollection() for spec creation
-  - detectVariableChanges() for change detection
-  - generateVariableChangelogEntries() and generateVariableChangelogMarkdown() for changelog generation
-  - formatVariableValue() for displaying variable values (colors, numbers, aliases)
-- Updated packages/core/src/parser.ts with:
-  - @figma-variables directive parsing (supports *, single name, or comma-separated names)
-  - parseVariablesFile(), parseVariablesDirectives(), parseVariablesDirectivesSync() functions
-- Created packages/cli/src/commands/variables.ts CLI command with:
-  - --file-key, --collection, --output, --cwd, --config flags
-  - Display of collections and variables with formatted output
-  - JSON export option
-- Exported all Variables API types and functions from packages/core/src/index.ts
-- Added 26 tests in packages/core/src/__tests__/variables-client.test.ts
-- Updated README.md with:
-  - Variables CLI command documentation
-  - @figma-variables directive syntax examples
-  - Programmatic usage examples for Variables API
-- Fixed action package build (use tsc --emitDeclarationOnly instead of tsup --dts)
-- All 248 tests pass, typecheck passes, lint passes
-- Files changed:
-  - packages/core/src/variables-client.ts (new)
-  - packages/core/src/__tests__/variables-client.test.ts (new)
-  - packages/core/src/parser.ts (added variables directive parsing)
-  - packages/core/src/index.ts (added variables exports)
-  - packages/cli/src/commands/variables.ts (new)
-  - packages/cli/src/index.ts (added variables command)
-  - packages/action/package.json (fixed build script)
-  - README.md (added Variables API documentation)
-- **Learnings for future iterations:**
-  - Figma Variables API requires Enterprise plan
-  - Use @figma-variables: * to track all collections, or specify names
-  - Action package also needs tsc --emitDeclarationOnly for DTS generation
-  - Use import * as crypto from 'crypto' (ESM) not require('crypto')
+  - README sections for CLI commands follow consistent structure: syntax, options, how it works, examples
+  - Use > **Tip:** for inline tips in Quick Start section
 ---
