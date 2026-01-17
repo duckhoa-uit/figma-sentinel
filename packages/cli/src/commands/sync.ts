@@ -4,14 +4,15 @@
 
 import ora from 'ora';
 import kleur from 'kleur';
-import { runSentinel } from '@khoavhd/figma-sentinel-core';
-import type { SentinelResult, SentinelConfig } from '@khoavhd/figma-sentinel-core';
+import { runSentinel, ConsoleLogger } from '@khoavhd/figma-sentinel-core';
+import type { SentinelResult, SentinelConfig, LogLevel } from '@khoavhd/figma-sentinel-core';
 import { resolveConfig } from '../config.js';
 
 export interface SyncOptions {
   dryRun?: boolean;
   cwd?: string;
   config?: string;
+  verbose?: boolean;
 }
 
 /**
@@ -98,12 +99,38 @@ async function runSentinelWithSpinners(
   options: SyncOptions,
   scanSpinner: ReturnType<typeof ora>
 ): Promise<SentinelResult> {
-  // Suppress default console output from runSentinel
+  // Set log level based on verbose flag
+  const logLevel: LogLevel = options.verbose ? 'debug' : 'info';
+  const logger = new ConsoleLogger(logLevel);
+
+  // In verbose mode, output debug info without suppressing logs
+  if (options.verbose) {
+    logger.debug('Verbose mode enabled');
+    logger.debug(`Working directory: ${cwd}`);
+    if (options.config) {
+      logger.debug(`Config path: ${options.config}`);
+    }
+    if (options.dryRun) {
+      logger.debug('Dry run mode: enabled');
+    }
+  }
+
+  // Suppress default console output from runSentinel (unless verbose)
   const originalLog = console.log;
   const logMessages: string[] = [];
-  console.log = (...args: unknown[]) => {
-    logMessages.push(args.map(String).join(' '));
-  };
+
+  if (!options.verbose) {
+    console.log = (...args: unknown[]) => {
+      logMessages.push(args.map(String).join(' '));
+    };
+  } else {
+    console.log = (...args: unknown[]) => {
+      const msg = args.map(String).join(' ');
+      logMessages.push(msg);
+      // In verbose mode, output all messages with debug prefix
+      logger.debug(msg);
+    };
+  }
 
   try {
     // Parse sentinel output phases
@@ -140,11 +167,21 @@ async function runSentinelWithSpinners(
     const progressInterval = setInterval(checkProgress, 100);
 
     // Load config using cosmiconfig
+    const startTime = Date.now();
     const configResult = await resolveConfig(cwd, options.config);
     const config: SentinelConfig = configResult.config;
 
     if (configResult.configPath) {
       logMessages.push(`Loaded configuration from ${configResult.configPath}`);
+      if (options.verbose) {
+        logger.debug(`Config loaded in ${Date.now() - startTime}ms`);
+        logger.debug(`Config: ${JSON.stringify(config, null, 2)}`);
+      }
+    }
+
+    const fetchStartTime = Date.now();
+    if (options.verbose) {
+      logger.debug('Starting sentinel workflow...');
     }
 
     const result = await runSentinel({
@@ -152,6 +189,13 @@ async function runSentinelWithSpinners(
       dryRun: options.dryRun,
       config,
     });
+
+    if (options.verbose) {
+      logger.debug(`Sentinel workflow completed in ${Date.now() - fetchStartTime}ms`);
+      logger.debug(`API calls made: ${result.apiCallCount}`);
+      logger.debug(`Files processed: ${result.filesProcessed}`);
+      logger.debug(`Nodes processed: ${result.nodesProcessed}`);
+    }
 
     clearInterval(progressInterval);
     checkProgress(); // Final check

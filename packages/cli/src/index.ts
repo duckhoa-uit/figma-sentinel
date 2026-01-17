@@ -19,11 +19,13 @@ program
   .command('sync')
   .description('Sync Figma designs and detect changes')
   .option('--dry-run', 'Preview changes without writing files')
+  .option('-v, --verbose', 'Enable debug-level output with API details')
   .option('--cwd <dir>', 'Set working directory')
   .option('--config <path>', 'Path to config file')
   .action(async (options) => {
     await syncCommand({
       dryRun: options.dryRun,
+      verbose: options.verbose,
       cwd: options.cwd,
       config: options.config,
     });
