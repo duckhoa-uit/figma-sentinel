@@ -168,6 +168,118 @@ module.exports = {
 | `imageScale` | `2` | Image export scale (1-4) |
 | `outputFormat` | `'json'` | Spec output format |
 
+## Error Handling
+
+Figma Sentinel provides comprehensive error handling with typed error classes, automatic retry logic, and user-friendly error messages.
+
+### Error Types
+
+| Error Class | Code | When Occurs | Retryable |
+|-------------|------|-------------|-----------|
+| `FigmaAuthenticationError` | `AUTH_ERROR` | 401/403 - Invalid or expired token, no access | No |
+| `FigmaNotFoundError` | `NOT_FOUND` | 404 - File or node doesn't exist | No |
+| `FigmaRateLimitError` | `RATE_LIMIT` | 429 - Too many requests | Yes |
+| `FigmaServerError` | `SERVER_ERROR` | 500+ - Figma API server error | No |
+| `FigmaValidationError` | `VALIDATION_ERROR` | 400 - Invalid request format | No |
+| `FigmaNetworkError` | `NETWORK_ERROR` | Connection failed, timeout | Yes |
+
+### Retry Behavior
+
+When a rate limit (429) or network error occurs, Figma Sentinel automatically retries with the following logic:
+
+1. **Retry-After Header**: If Figma returns a `Retry-After` header, that value is used as the wait time
+2. **Exponential Backoff**: If no header is present, uses exponential backoff (1s, 2s, 4s...)
+3. **Max Delay Abort**: If the wait time exceeds `maxRetryDelayMs` (default: 1 hour), retries abort immediately
+
+The CLI shows a spinner with countdown during rate limit waits:
+```
+⠋ Rate limited. Waiting 60s... (Tier: starter, Type: file)
+```
+
+### Configuration Options
+
+Control retry and concurrency behavior via the `api` config section:
+
+```js
+// figma-sentinel.config.js
+module.exports = {
+  // ... other options
+  api: {
+    concurrency: 5,       // Max concurrent API requests (default: 5, max: 20)
+    maxRetries: 3,        // Max retry attempts (default: 3, max: 10)
+    maxRetryDelayMs: 3600000, // Max wait before aborting retry (default: 1 hour)
+  },
+};
+```
+
+### Event System for Custom Integrations
+
+For advanced use cases, subscribe to error events programmatically:
+
+```typescript
+import { 
+  runSentinel, 
+  createEventEmitter,
+  type ErrorEventPayload,
+  type RetryEventPayload,
+  type RateLimitedEventPayload,
+  type CompletedEventPayload,
+} from '@khoavhd/figma-sentinel-core';
+
+const emitter = createEventEmitter();
+
+// Handle errors
+emitter.onError((payload: ErrorEventPayload) => {
+  console.error(`Error in file ${payload.context?.fileKey}:`, payload.error.message);
+  // Send to Sentry, Slack, etc.
+});
+
+// Track retries
+emitter.onRetry((payload: RetryEventPayload) => {
+  console.log(`Retry ${payload.details.attempt}/${payload.details.maxRetries}`);
+});
+
+// Handle rate limits
+emitter.onRateLimited((payload: RateLimitedEventPayload) => {
+  console.log(`Rate limited. Waiting ${payload.details.retryAfterSec}s`);
+  console.log(`Plan tier: ${payload.details.headers.planTier}`);
+});
+
+// Track completion
+emitter.onCompleted((payload: CompletedEventPayload) => {
+  console.log(`Done: ${payload.details.successCount} succeeded, ${payload.details.failureCount} failed`);
+});
+
+// Pass emitter to runSentinel
+const result = await runSentinel({
+  configPath: './figma-sentinel.config.js',
+  eventEmitter: emitter,
+});
+```
+
+### GitHub Action Error Outputs
+
+When using the GitHub Action, error information is available via outputs:
+
+```yaml
+- name: Sync Figma Designs
+  id: sync
+  uses: duckhoa-uit/figma-sentinel@v1
+  with:
+    figma-token: ${{ secrets.FIGMA_TOKEN }}
+  continue-on-error: true
+
+- name: Handle Errors
+  if: steps.sync.outputs.error-count != '0'
+  run: |
+    echo "Error occurred: ${{ steps.sync.outputs.error-details }}"
+```
+
+| Output | Description |
+|--------|-------------|
+| `error-count` | Number of errors (`0` or `1` with fail-fast) |
+| `error-details` | JSON with `code`, `message`, `isRetryable`, `name` |
+
 ## CLI Commands
 
 ### `figma-sentinel sync`
