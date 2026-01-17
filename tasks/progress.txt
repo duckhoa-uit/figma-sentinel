@@ -296,3 +296,18 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc92-7238-7788-8da8-3a9af
   - Extend base error class and call super() with required code/isRetryable options
   - Use Error.captureStackTrace with specific class name for proper stack traces
 ---
+
+## 2026-01-17 - US-003
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc93-e7f8-75fc-ad9b-551b0a051219
+- Created remaining error subclasses extending `FigmaSentinelError`:
+  - `FigmaAuthenticationError` with code 'AUTH_ERROR' for 401/403
+  - `FigmaNotFoundError` with code 'NOT_FOUND' and `fileKey?: string` property
+  - `FigmaServerError` with code 'SERVER_ERROR' for 500
+  - `FigmaValidationError` with code 'VALIDATION_ERROR' for 400
+  - `FigmaNetworkError` with code 'NETWORK_ERROR' and `isRetryable: true`
+- All classes exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/errors.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use optional `options?: {}` for subclasses with optional properties
+  - All error classes follow consistent structure: code, isRetryable, name, captureStackTrace
+---
