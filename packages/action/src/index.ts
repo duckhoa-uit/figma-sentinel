@@ -2,7 +2,14 @@
 
 import * as core from '@actions/core';
 import * as path from 'path';
-import { runSentinel, loadConfig, mergeConfig, DEFAULT_CONFIG } from '@khoavhd/figma-sentinel-core';
+import {
+  runSentinel,
+  loadConfig,
+  mergeConfig,
+  DEFAULT_CONFIG,
+  FigmaSentinelError,
+  generateErrorMessage,
+} from '@khoavhd/figma-sentinel-core';
 import { createOrUpdatePR, getCurrentBranch, getBaseBranch, parseLabels, parseReviewers } from './pr.js';
 
 async function run(): Promise<void> {
@@ -136,13 +143,48 @@ async function run(): Promise<void> {
     }
 
     core.info('Figma Sentinel Action completed successfully');
+    core.setOutput('error-count', '0');
+    core.setOutput('error-details', '');
   } catch (error) {
-    if (error instanceof Error) {
+    // Set error count (1 since fail-fast means at most 1 error)
+    core.setOutput('error-count', '1');
+
+    if (error instanceof FigmaSentinelError) {
+      // Use actionable error message from generateErrorMessage
+      const actionableMessage = generateErrorMessage(error);
+      core.setFailed(actionableMessage);
+
+      // Set error details as JSON
+      const errorDetails = {
+        code: error.code,
+        message: error.message,
+        isRetryable: error.isRetryable,
+        name: error.name,
+      };
+      core.setOutput('error-details', JSON.stringify(errorDetails));
+    } else if (error instanceof Error) {
       core.setFailed(error.message);
+      core.setOutput(
+        'error-details',
+        JSON.stringify({
+          code: 'UNKNOWN_ERROR',
+          message: error.message,
+          name: error.name,
+        })
+      );
     } else {
       core.setFailed('An unexpected error occurred');
+      core.setOutput(
+        'error-details',
+        JSON.stringify({
+          code: 'UNKNOWN_ERROR',
+          message: 'An unexpected error occurred',
+        })
+      );
     }
   }
 }
+
+export { run };
 
 run();
