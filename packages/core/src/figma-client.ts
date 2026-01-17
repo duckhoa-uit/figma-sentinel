@@ -10,6 +10,7 @@ import type {
   FigmaNode,
   FetchRequest,
 } from './types.js';
+import { parseRateLimitHeaders } from './error-parser.js';
 
 const FIGMA_API_BASE = 'https://api.figma.com';
 const MAX_RETRIES = 3;
@@ -62,11 +63,23 @@ async function fetchWithRetry(
         `Figma API rate limit exceeded. Max retries (${MAX_RETRIES}) reached.`,
       );
     }
-    const backoffMs = INITIAL_BACKOFF_MS * Math.pow(2, retryCount);
+
+    // Parse rate limit headers to get Retry-After value
+    const rateLimitHeaders = parseRateLimitHeaders(response.headers);
+    let waitMs: number;
+
+    if (rateLimitHeaders.retryAfterSec !== undefined) {
+      // Use Retry-After header value if present
+      waitMs = rateLimitHeaders.retryAfterSec * 1000;
+    } else {
+      // Fall back to exponential backoff if header missing
+      waitMs = INITIAL_BACKOFF_MS * Math.pow(2, retryCount);
+    }
+
     console.warn(
-      `Rate limited by Figma API. Retrying in ${backoffMs}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`,
+      `Rate limited by Figma API. Retrying in ${waitMs}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`,
     );
-    await sleep(backoffMs);
+    await sleep(waitMs);
     return fetchWithRetry(url, token, retryCount + 1);
   }
 

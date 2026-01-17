@@ -360,3 +360,19 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc99-ce19-700c-9884-8e627
   - parseRateLimitHeaders was implemented as part of US-005 parseErrorResponse implementation
   - Check if previous iterations already implemented the story before starting work
 ---
+
+## 2026-01-17 - US-007
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc99-ce19-700c-9884-8e62720693df
+- Created comprehensive test suite for error parser in `packages/core/src/__tests__/error-parser.test.ts`
+- 20 tests covering:
+  - `parseRateLimitHeaders`: all headers, missing headers, invalid Retry-After
+  - `parseErrorResponse`: {status, err} format, {error: true, message} format
+  - Header extraction with rate limit info
+  - Edge cases: empty body, non-JSON, long text, unknown JSON structures
+- All tests pass, typecheck passes, lint passes (warnings only)
+- Files changed: `packages/core/src/__tests__/error-parser.test.ts`
+- **Learnings for future iterations:**
+  - Use helper function `createResponse` to build mock Response objects
+  - Test both Figma error response formats for each status code
+  - Edge cases include empty body, non-JSON, and long response text
+---
