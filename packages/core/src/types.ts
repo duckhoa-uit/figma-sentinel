@@ -212,6 +212,18 @@ export interface VariantChange {
 }
 
 /**
+ * API configuration options for rate limiting and concurrency control.
+ */
+export interface ApiConfig {
+  /** Maximum concurrent API requests (default: 5) */
+  concurrency: number;
+  /** Maximum number of retry attempts (default: 3) */
+  maxRetries: number;
+  /** Maximum delay in ms before aborting retry (default: 3600000 = 1 hour) */
+  maxRetryDelayMs: number;
+}
+
+/**
  * Configuration options for the Figma Sentinel.
  */
 export interface SentinelConfig {
@@ -231,6 +243,8 @@ export interface SentinelConfig {
   includeProperties?: string[];
   /** Properties to always exclude (blocklist) */
   excludeProperties?: string[];
+  /** API configuration for rate limiting and concurrency */
+  api?: ApiConfig;
 }
 
 /**

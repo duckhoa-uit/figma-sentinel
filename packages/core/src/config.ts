@@ -12,6 +12,38 @@ import { z } from 'zod';
 import type { SentinelConfig } from './types.js';
 
 /**
+ * Default API configuration values.
+ */
+export const DEFAULT_API_CONFIG = {
+  concurrency: 5,
+  maxRetries: 3,
+  maxRetryDelayMs: 3600000, // 1 hour
+} as const;
+
+/**
+ * Zod schema for API configuration.
+ */
+export const ApiConfigSchema = z.object({
+  concurrency: z
+    .number()
+    .min(1, 'must be at least 1')
+    .max(20, 'must be at most 20')
+    .default(DEFAULT_API_CONFIG.concurrency)
+    .describe('Maximum concurrent API requests'),
+  maxRetries: z
+    .number()
+    .min(0, 'must be at least 0')
+    .max(10, 'must be at most 10')
+    .default(DEFAULT_API_CONFIG.maxRetries)
+    .describe('Maximum number of retry attempts'),
+  maxRetryDelayMs: z
+    .number()
+    .min(0, 'must be at least 0')
+    .default(DEFAULT_API_CONFIG.maxRetryDelayMs)
+    .describe('Maximum delay in ms before aborting retry'),
+});
+
+/**
  * Zod schema for SentinelConfig validation.
  */
 export const SentinelConfigSchema = z.object({
@@ -44,6 +76,9 @@ export const SentinelConfigSchema = z.object({
     .array(z.string())
     .optional()
     .describe('Properties to always exclude (blocklist)'),
+  api: ApiConfigSchema.optional().describe(
+    'API configuration for rate limiting and concurrency'
+  ),
 });
 
 /**
@@ -112,6 +147,7 @@ export function validateConfig(
     'outputFormat',
     'includeProperties',
     'excludeProperties',
+    'api',
   ]);
 
   for (const key of Object.keys(config)) {
@@ -254,6 +290,13 @@ export function mergeConfig(partial: PartialSentinelConfig): SentinelConfig {
     outputFormat: partial.outputFormat ?? DEFAULT_CONFIG.outputFormat,
     includeProperties: partial.includeProperties,
     excludeProperties: partial.excludeProperties,
+    api: partial.api
+      ? {
+          concurrency: partial.api.concurrency ?? DEFAULT_API_CONFIG.concurrency,
+          maxRetries: partial.api.maxRetries ?? DEFAULT_API_CONFIG.maxRetries,
+          maxRetryDelayMs: partial.api.maxRetryDelayMs ?? DEFAULT_API_CONFIG.maxRetryDelayMs,
+        }
+      : undefined,
   };
 }
 

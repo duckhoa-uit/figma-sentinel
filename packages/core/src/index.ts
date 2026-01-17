@@ -19,6 +19,7 @@ export type {
   PropertyChange,
   VariantChange,
   SentinelConfig,
+  ApiConfig,
   ChangeDetectionResult,
   FigmaApiNodesResponse,
   FigmaApiImagesResponse,
@@ -113,6 +114,7 @@ export {
 // Config exports
 export {
   DEFAULT_CONFIG,
+  DEFAULT_API_CONFIG,
   validateConfig,
   loadConfig,
   loadConfigFromFile,
@@ -120,6 +122,7 @@ export {
   createDefaultConfigFile,
   formatValidationErrors,
   SentinelConfigSchema,
+  ApiConfigSchema,
   PartialSentinelConfigSchema,
   type PartialSentinelConfig,
   type ConfigValidationError,
