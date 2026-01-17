@@ -1,5 +1,19 @@
 # @khoavhd/figma-sentinel
 
+## 1.1.0
+
+### Minor Changes
+
+- b3514d4: feat: add `link` command for interactive project setup
+  - New `sentinel link` command to interactively configure Figma projects
+  - Prompts for Figma file URL, output directory, and export options
+  - Automatically creates or updates sentinel.config.json
+
+### Patch Changes
+
+- Updated dependencies [b3514d4]
+  - @khoavhd/figma-sentinel-core@1.1.0
+
 ## 1.0.2
 
 ### Patch Changes
