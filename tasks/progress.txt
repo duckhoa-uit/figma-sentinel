@@ -602,3 +602,20 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccbe-945b-777c-89ee-6cef0
   - Promise.all starts all requests but propagates first rejection
   - Cast errors with `(error as FigmaNotFoundError)` to access subclass-specific properties
 ---
+
+## 2026-01-17 - US-021
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccc0-adb7-77d3-bc39-a4cf82b3f0f6
+- Created `ErrorEventEmitter` class in `packages/core/src/error-events.ts`
+- Extends Node.js EventEmitter with typed events: 'error', 'retry', 'rateLimited', 'completed'
+- Each event has typed payload with type, error/details, context, and timestamp
+- Helper methods: emitError, emitRetry, emitRateLimited, emitCompleted
+- Type-safe listener methods: onError, onRetry, onRateLimited, onCompleted
+- Added `createEventEmitter()` factory function
+- Exported all types and classes from barrel file (index.ts)
+- Typecheck passes
+- Files changed: `packages/core/src/error-events.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use Node.js EventEmitter as base class for event systems
+  - Provide typed emit* and on* helper methods for type safety
+  - Import types from error-parser.ts for RateLimitHeaders
+---
