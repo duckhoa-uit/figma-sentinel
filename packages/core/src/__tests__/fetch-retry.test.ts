@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { fetchNodes } from '../figma-client.js';
 import type { FigmaDirective } from '../types.js';
-import { FigmaRateLimitError, FigmaNetworkError } from '../errors.js';
+import { FigmaRateLimitError } from '../errors.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -293,7 +293,7 @@ describe('fetchWithRetry', () => {
       await errorPromise;
 
       // 1 initial call + 3 retries = 4 total calls
-      expect(caughtError).toBeInstanceOf(FigmaNetworkError);
+      expect(caughtError).toBeInstanceOf(FigmaRateLimitError);
       expect(caughtError?.message).toContain('Max retries');
     }, 10000);
 
@@ -322,7 +322,7 @@ describe('fetchWithRetry', () => {
 
       await errorPromise;
 
-      expect(caughtError).toBeInstanceOf(FigmaNetworkError);
+      expect(caughtError).toBeInstanceOf(FigmaRateLimitError);
       expect(caughtError?.message).toContain('Max retries');
     }, 10000);
   });

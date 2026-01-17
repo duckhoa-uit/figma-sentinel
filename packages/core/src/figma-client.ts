@@ -22,6 +22,7 @@ import {
   FigmaNetworkError,
 } from './errors.js';
 import { DEFAULT_API_CONFIG } from './config.js';
+import type { ErrorEventEmitter } from './error-events.js';
 
 const FIGMA_API_BASE = 'https://api.figma.com';
 const MAX_RETRIES = 3;
@@ -52,10 +53,16 @@ async function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+interface FetchWithRetryOptions {
+  eventEmitter?: ErrorEventEmitter;
+  context?: { fileKey?: string; nodeId?: string };
+}
+
 async function fetchWithRetry(
   url: string,
   token: string,
   retryCount = 0,
+  options?: FetchWithRetryOptions,
 ): Promise<Response> {
   const response = await fetch(url, {
     headers: {
@@ -64,12 +71,6 @@ async function fetchWithRetry(
   });
 
   if (response.status === 429) {
-    if (retryCount >= MAX_RETRIES) {
-      throw new Error(
-        `Figma API rate limit exceeded. Max retries (${MAX_RETRIES}) reached.`,
-      );
-    }
-
     // Parse rate limit headers to get Retry-After value
     const rateLimitHeaders = parseRateLimitHeaders(response.headers);
     let waitMs: number;
@@ -82,12 +83,40 @@ async function fetchWithRetry(
       waitMs = INITIAL_BACKOFF_MS * Math.pow(2, retryCount);
     }
 
+    // Emit 'rateLimited' event when 429 received
+    if (options?.eventEmitter) {
+      options.eventEmitter.emitRateLimited(
+        {
+          retryAfterSec: rateLimitHeaders.retryAfterSec ?? Math.round(waitMs / 1000),
+          headers: rateLimitHeaders,
+        },
+        options.context
+      );
+    }
+
+    if (retryCount >= MAX_RETRIES) {
+      const error = new FigmaRateLimitError(
+        `Figma API rate limit exceeded. Max retries (${MAX_RETRIES}) reached.`,
+        {
+          retryAfterSec: rateLimitHeaders.retryAfterSec ?? Math.round(waitMs / 1000),
+          planTier: rateLimitHeaders.planTier,
+          rateLimitType: rateLimitHeaders.rateLimitType,
+          upgradeLink: rateLimitHeaders.upgradeLink,
+        }
+      );
+      // Emit 'error' event when max retries exceeded
+      if (options?.eventEmitter) {
+        options.eventEmitter.emitError(error, options.context);
+      }
+      throw error;
+    }
+
     // Check if wait time exceeds maximum allowed delay
     if (waitMs > MAX_RETRY_DELAY_MS) {
       const upgradeInfo = rateLimitHeaders.upgradeLink
         ? ` Consider upgrading: ${rateLimitHeaders.upgradeLink}`
         : '';
-      throw new FigmaRateLimitError(
+      const error = new FigmaRateLimitError(
         `Rate limit wait time (${Math.round(waitMs / 1000)}s) exceeds maximum allowed delay (${MAX_RETRY_DELAY_MS / 1000}s).${upgradeInfo}`,
         {
           retryAfterSec: rateLimitHeaders.retryAfterSec ?? Math.round(waitMs / 1000),
@@ -96,13 +125,31 @@ async function fetchWithRetry(
           upgradeLink: rateLimitHeaders.upgradeLink,
         }
       );
+      // Emit 'error' event when max delay exceeded
+      if (options?.eventEmitter) {
+        options.eventEmitter.emitError(error, options.context);
+      }
+      throw error;
+    }
+
+    // Emit 'retry' event before each retry attempt
+    if (options?.eventEmitter) {
+      options.eventEmitter.emitRetry(
+        {
+          attempt: retryCount + 1,
+          maxRetries: MAX_RETRIES,
+          delayMs: waitMs,
+          url,
+        },
+        options.context
+      );
     }
 
     console.warn(
       `Rate limited by Figma API. Retrying in ${waitMs}ms (attempt ${retryCount + 1}/${MAX_RETRIES})`,
     );
     await sleep(waitMs);
-    return fetchWithRetry(url, token, retryCount + 1);
+    return fetchWithRetry(url, token, retryCount + 1, options);
   }
 
   return response;
@@ -141,6 +188,7 @@ function groupDirectivesByFileKey(directives: FigmaDirective[]): FetchRequest[] 
 async function fetchNodesForFileKey(
   request: FetchRequest,
   token: string,
+  options?: FetchWithRetryOptions,
 ): Promise<FetchResult> {
   const { fileKey, nodeIds, sourceFiles } = request;
   const nodes: FetchedNode[] = [];
@@ -148,9 +196,15 @@ async function fetchNodesForFileKey(
   const idsParam = nodeIds.join(',');
   const url = `${FIGMA_API_BASE}/v1/files/${fileKey}/nodes?ids=${encodeURIComponent(idsParam)}`;
 
+  // Pass eventEmitter with fileKey context
+  const retryOptions: FetchWithRetryOptions = {
+    eventEmitter: options?.eventEmitter,
+    context: { ...options?.context, fileKey },
+  };
+
   let response: Response;
   try {
-    response = await fetchWithRetry(url, token);
+    response = await fetchWithRetry(url, token, 0, retryOptions);
   } catch (error) {
     // Re-throw typed errors from fetchWithRetry (e.g., FigmaRateLimitError)
     if (error instanceof FigmaRateLimitError) {
@@ -228,6 +282,8 @@ async function fetchNodesForFileKey(
 export interface FetchNodesOptions {
   /** API configuration for concurrency control */
   apiConfig?: Partial<ApiConfig>;
+  /** Event emitter for retry and error events */
+  eventEmitter?: ErrorEventEmitter;
 }
 
 export async function fetchNodes(
@@ -247,8 +303,12 @@ export async function fetchNodes(
 
   // With fail-fast behavior, we need to stop on first error
   // Using Promise.all will reject on first error, propagating it up
+  const retryOptions: FetchWithRetryOptions | undefined = options?.eventEmitter
+    ? { eventEmitter: options.eventEmitter }
+    : undefined;
+
   const results = await Promise.all(
-    requests.map(request => limit(() => fetchNodesForFileKey(request, token))),
+    requests.map(request => limit(() => fetchNodesForFileKey(request, token, retryOptions))),
   );
 
   for (const result of results) {

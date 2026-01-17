@@ -10,6 +10,7 @@ import {
   FigmaAuthenticationError,
   FigmaNotFoundError,
   FigmaValidationError,
+  FigmaRateLimitError,
 } from '../errors.js';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -218,7 +219,7 @@ describe('fetchNodes', () => {
       },
     ];
 
-    await expect(fetchNodes(directives)).rejects.toThrow(FigmaNetworkError);
+    await expect(fetchNodes(directives)).rejects.toThrow(FigmaRateLimitError);
     await expect(fetchNodes(directives)).rejects.toThrow('Max retries');
   }, 30000);
 
