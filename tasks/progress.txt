@@ -29,6 +29,7 @@
 - import * as crypto from 'crypto' instead of require('crypto') to satisfy ESLint
 - Use `workspace:*` in package.json dependencies for local workspace packages (resolves TypeScript issues)
 - insertDirectives takes an options object: { fileKey, nodeId, filePath, content, mode }
+- fetchNodes throws typed errors (FigmaNetworkError, FigmaAuthenticationError, etc.) - use try/catch to handle
 
 ---
 
@@ -560,4 +561,27 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccb2-6c71-732c-8e66-073af
   - ErrorAggregator returns copies of errors array to prevent external mutation
   - getSummary groups by error.code and context.fileKey
   - Use Map for efficient grouping operations
+---
+
+## 2026-01-17 - US-019
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccb3-eba3-77c9-a04b-72b75d4ded0c
+- Implemented fail-fast behavior in fetchNodes function
+- Modified fetchNodesForFileKey to throw typed errors instead of collecting them:
+  - FigmaNetworkError for network issues and rate limit max retries
+  - FigmaAuthenticationError for 401/403 responses
+  - FigmaNotFoundError for 404 and missing nodes
+  - FigmaServerError for 500+ responses
+  - FigmaValidationError for parse failures
+  - FigmaRateLimitError re-thrown from fetchWithRetry
+- Removed FetchError interface and errors array from FetchResult
+- Updated fetchNodes to throw on first error (Promise.all propagates first rejection)
+- Updated sentinel.ts to handle errors in try/catch
+- Updated diff.ts CLI command to use try/catch pattern
+- Updated all related tests to expect thrown errors instead of errors array
+- Files changed: `packages/core/src/figma-client.ts`, `packages/core/src/index.ts`, `packages/core/src/sentinel.ts`, `packages/cli/src/commands/diff.ts`, `packages/core/src/__tests__/figma-client.test.ts`, `packages/core/src/__tests__/fetch-retry.test.ts`, `packages/core/src/__tests__/sentinel.test.ts`
+- **Learnings for future iterations:**
+  - Use try/catch pattern to handle thrown errors from async functions
+  - Attach error handlers to Promises before advancing fake timers to prevent unhandled rejections
+  - FetchResult no longer has errors array - consumers must catch thrown errors
+  - Error types carry context like fileKey in FigmaNotFoundError
 ---
