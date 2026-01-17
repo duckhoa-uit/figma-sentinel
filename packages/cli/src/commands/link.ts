@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ora from 'ora';
 import kleur from 'kleur';
+import prompts from 'prompts';
 import {
   parseFigmaUrl,
   detectDirectives,
@@ -145,27 +146,47 @@ async function processFile(
 
     // Handle existing directives
     if (existing.hasFileDirective) {
-      // File already has directives - will be handled in US-010
-      if (options.force) {
-        // Replace all directives
-        const insertResult = insertDirectives({
-          fileKey,
-          nodeId,
-          filePath,
-          content,
-          mode: 'replace',
-        });
-        fs.writeFileSync(filePath, insertResult.content, 'utf-8');
-        spinner.succeed(
-          kleur.green(`✔ Replaced directives in ${fileName} → ${fileKey}${nodeId ? ` (node: ${nodeId})` : ''}`)
-        );
-        result.success++;
-      } else {
-        spinner.info(
-          kleur.yellow(`${fileName} already has directives. Use --force to replace.`)
-        );
+      spinner.stop();
+      const resolution = await resolveConflict(
+        fileName,
+        fileKey,
+        nodeId,
+        existing,
+        options
+      );
+
+      if (resolution === 'cancel') {
+        console.log(kleur.yellow(`  ⊘ Skipped ${fileName}`));
         result.skipped++;
+        return;
       }
+
+      if (resolution === 'skip-duplicate') {
+        console.log(kleur.cyan(`  ℹ ${fileName} already has node ${nodeId}`));
+        result.skipped++;
+        return;
+      }
+
+      const mode = resolution === 'add' ? 'append' : 'replace';
+      const insertResult = insertDirectives({
+        fileKey,
+        nodeId,
+        filePath,
+        content,
+        mode,
+      });
+      fs.writeFileSync(filePath, insertResult.content, 'utf-8');
+
+      if (resolution === 'add') {
+        console.log(
+          kleur.green(`  ✔ Added node ${nodeId} to ${fileName}`)
+        );
+      } else {
+        console.log(
+          kleur.green(`  ✔ Replaced directives in ${fileName} → ${fileKey}${nodeId ? ` (node: ${nodeId})` : ''}`)
+        );
+      }
+      result.success++;
       return;
     }
 
@@ -194,4 +215,84 @@ async function processFile(
     );
     result.failed++;
   }
+}
+
+type ConflictResolution = 'add' | 'replace' | 'cancel' | 'skip-duplicate';
+
+interface DetectedDirectives {
+  hasFileDirective: boolean;
+  fileKey: string | null;
+  nodeIds: string[];
+}
+
+/**
+ * Resolve conflict when file already has directives
+ */
+async function resolveConflict(
+  fileName: string,
+  newFileKey: string,
+  newNodeId: string | null,
+  existing: DetectedDirectives,
+  options: LinkOptions
+): Promise<ConflictResolution> {
+  const sameFileKey = existing.fileKey === newFileKey;
+
+  // Check for duplicate node ID
+  if (sameFileKey && newNodeId && existing.nodeIds.includes(newNodeId)) {
+    return 'skip-duplicate';
+  }
+
+  // --force flag: always replace without prompt
+  if (options.force) {
+    return 'replace';
+  }
+
+  // --yes flag: auto-add if same key, auto-replace if different
+  if (options.yes) {
+    if (sameFileKey) {
+      return 'add';
+    }
+    return 'replace';
+  }
+
+  // Interactive prompt
+  console.log(kleur.yellow(`\n  File ${fileName} already has directives:`));
+  console.log(kleur.gray(`    @figma-file: ${existing.fileKey}`));
+  if (existing.nodeIds.length > 0) {
+    console.log(kleur.gray(`    @figma-node: ${existing.nodeIds.join(', ')}`));
+  }
+
+  if (!sameFileKey) {
+    console.log(
+      kleur.yellow(`\n  ⚠ New file key (${newFileKey}) differs from existing (${existing.fileKey})`)
+    );
+  }
+
+  const choices: Array<{ title: string; value: ConflictResolution }> = [];
+
+  if (sameFileKey && newNodeId) {
+    choices.push({
+      title: `Add node to existing (append @figma-node: ${newNodeId})`,
+      value: 'add',
+    });
+  }
+
+  choices.push(
+    { title: 'Replace all directives', value: 'replace' },
+    { title: 'Cancel (skip this file)', value: 'cancel' }
+  );
+
+  const response = await prompts({
+    type: 'select',
+    name: 'action',
+    message: 'What would you like to do?',
+    choices,
+  });
+
+  // User cancelled (Ctrl+C)
+  if (!response.action) {
+    return 'cancel';
+  }
+
+  return response.action;
 }
