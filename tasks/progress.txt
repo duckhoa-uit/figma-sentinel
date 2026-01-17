@@ -14,6 +14,7 @@
 - Use fs.rmSync with { recursive: true, force: true } for test cleanup
 - Cannot spy on ESM exports (child_process.spawnSync) - avoid mocking or use vi.mock at module level
 - Use `while (conditionVar)` instead of `while (true)` to avoid ESLint no-constant-condition error
+- CommentStyle types: 'single-line' (//, #), 'block' (/* */), 'html' (<!-- -->)
 - Zod is used for config validation - use .partial() for optional fields and check unknown fields separately
 - CLI uses commander v12, ora v5, execa v5 (CJS compatible versions)
 - Core package uses `tsc --emitDeclarationOnly` for DTS generation (not tsup --dts) to work with project references
@@ -62,4 +63,20 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcada-9c57-704a-8ef8-87be0
   - Test pattern uses `describe` blocks to group related tests
   - Use `.toThrow(ErrorClass)` and `.toThrow('message')` for testing error messages
   - Import error classes from source to verify correct error types are thrown
+---
+
+## 2026-01-17 - US-003
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcadc-2a09-7170-b4ab-eb3704ab6481
+- Created `getCommentStyle` function in `packages/core/src/comment-style.ts`
+- Returns correct comment prefix/suffix for file extensions:
+  - `//` for .ts, .tsx, .js, .jsx, .swift, .kt, .go, .rs (default)
+  - `#` for .py, .rb, .sh, .yaml, .yml
+  - `/* */` for .css, .scss, .less
+  - `<!-- -->` for .html, .vue, .svelte
+- Created `formatDirective` function to format @figma-file and @figma-node directives
+- Exported both functions and CommentStyle type from index.ts
+- Files changed: `packages/core/src/comment-style.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Default to C-style comments (//) for unknown extensions
+  - CommentStyle interface has type, prefix, and optional suffix
 ---
