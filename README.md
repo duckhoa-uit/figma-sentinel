@@ -12,6 +12,7 @@ Figma Sentinel is a directive-driven tool that monitors Figma designs referenced
 ## Features
 
 - **Directive-Based Tracking**: Reference Figma nodes directly in source code comments
+- **Easy Linking**: Add Figma directives from URLs with a single command
 - **Change Detection**: Automatically detect added, modified, and removed design properties
 - **Image Export**: Export design previews alongside JSON specs
 - **Markdown Export**: Generate LLM-optimized design specs for AI-assisted development
@@ -96,6 +97,8 @@ figma-sentinel init
 
 # Or create manually: figma-sentinel.config.js
 ```
+
+> **Tip:** Use `figma-sentinel link <url> -f src/Button.tsx` to quickly add directives from a Figma URL!
 
 ### 3. Set Up Figma Token
 
@@ -281,6 +284,46 @@ figma-sentinel variables
 // @figma-variables: *              // Track all collections
 // @figma-variables: Colors         // Track specific collection
 // @figma-variables: Colors, Spacing // Track multiple collections
+```
+
+### `figma-sentinel link`
+
+Link source files to Figma designs by adding directives from URLs.
+
+```bash
+figma-sentinel link [url] [options]
+
+Options:
+  -f, --file <path>    Target file path (can be used multiple times)
+  -p, --path <path>    Alias for --file
+  -y, --yes            Skip confirmations (auto-add or auto-replace)
+  --force              Always replace existing directives
+  -c, --cwd <dir>      Set working directory
+```
+
+**How it works:**
+1. Parses the Figma URL to extract the file key and node ID
+2. Detects the correct comment style for your file type (e.g., `//` for TypeScript, `#` for Python)
+3. Inserts `@figma-file` and `@figma-node` directives at the top of the file
+
+**Examples:**
+```bash
+# Link a single file (interactive if no args)
+figma-sentinel link
+
+# Link with URL and file
+figma-sentinel link "https://www.figma.com/design/ABC123/MyDesign?node-id=1:23" -f src/Button.tsx
+
+# Link multiple files to the same design
+figma-sentinel link "https://www.figma.com/design/ABC123/MyDesign?node-id=1:23" \
+  -f src/Button.tsx \
+  -f src/ButtonIcon.tsx
+
+# Replace existing directives without prompting
+figma-sentinel link "https://www.figma.com/design/ABC123/MyDesign?node-id=1:23" -f src/Button.tsx --force
+
+# Auto-accept defaults (add if same file key, replace if different)
+figma-sentinel link "https://www.figma.com/design/ABC123/MyDesign?node-id=1:23" -f src/Button.tsx --yes
 ```
 
 ## GitHub Action Usage
