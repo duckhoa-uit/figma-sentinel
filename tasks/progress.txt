@@ -264,3 +264,23 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcb87-2121-752c-94b5-0afd0
   - README sections for CLI commands follow consistent structure: syntax, options, how it works, examples
   - Use > **Tip:** for inline tips in Quick Start section
 ---
+
+# Improved Error Handling Feature Progress
+
+Feature branch: ralph/improved-error-handling
+PRD: tasks/prd.json
+
+---
+
+## 2026-01-17 - US-001
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc91-2aa0-701a-9fa6-7c301696edab
+- Created `FigmaSentinelError` base class in `packages/core/src/errors.ts`
+- Class extends Error with `code: string`, `cause?: Error`, and `isRetryable: boolean` properties
+- Default `isRetryable` is false
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/errors.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use readonly properties for immutable error metadata
+  - Use Error.captureStackTrace for proper V8 stack traces
+  - Use `.js` extension in imports for ESM compatibility
+---

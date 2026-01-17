@@ -39,3 +39,47 @@ export class FigmaSentinelError extends Error {
     }
   }
 }
+
+/**
+ * Error thrown when Figma API returns a 429 rate limit response.
+ * Contains Figma-specific rate limit headers for retry logic.
+ */
+export class FigmaRateLimitError extends FigmaSentinelError {
+  /** Number of seconds to wait before retrying (from Retry-After header) */
+  readonly retryAfterSec: number;
+
+  /** Figma plan tier from X-Figma-Plan-Tier header */
+  readonly planTier?: string;
+
+  /** Rate limit type from X-Figma-Rate-Limit-Type header */
+  readonly rateLimitType?: string;
+
+  /** Upgrade link from X-Figma-Upgrade-Link header */
+  readonly upgradeLink?: string;
+
+  constructor(
+    message: string,
+    options: {
+      retryAfterSec: number;
+      planTier?: string;
+      rateLimitType?: string;
+      upgradeLink?: string;
+      cause?: Error;
+    }
+  ) {
+    super(message, {
+      code: 'RATE_LIMIT',
+      isRetryable: true,
+      cause: options.cause,
+    });
+    this.name = 'FigmaRateLimitError';
+    this.retryAfterSec = options.retryAfterSec;
+    this.planTier = options.planTier;
+    this.rateLimitType = options.rateLimitType;
+    this.upgradeLink = options.upgradeLink;
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, FigmaRateLimitError);
+    }
+  }
+}

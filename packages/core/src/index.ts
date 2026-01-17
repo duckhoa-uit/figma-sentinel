@@ -153,7 +153,7 @@ export {
 } from './directive-inserter.js';
 
 // Error exports
-export { FigmaSentinelError } from './errors.js';
+export { FigmaSentinelError, FigmaRateLimitError } from './errors.js';
 
 // Variables Client exports
 export {
