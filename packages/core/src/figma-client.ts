@@ -11,10 +11,12 @@ import type {
   FetchRequest,
 } from './types.js';
 import { parseRateLimitHeaders } from './error-parser.js';
+import { FigmaRateLimitError } from './errors.js';
 
 const FIGMA_API_BASE = 'https://api.figma.com';
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 1000;
+const MAX_RETRY_DELAY_MS = 3600000; // 1 hour
 
 export interface FetchedNode {
   nodeId: string;
@@ -74,6 +76,22 @@ async function fetchWithRetry(
     } else {
       // Fall back to exponential backoff if header missing
       waitMs = INITIAL_BACKOFF_MS * Math.pow(2, retryCount);
+    }
+
+    // Check if wait time exceeds maximum allowed delay
+    if (waitMs > MAX_RETRY_DELAY_MS) {
+      const upgradeInfo = rateLimitHeaders.upgradeLink
+        ? ` Consider upgrading: ${rateLimitHeaders.upgradeLink}`
+        : '';
+      throw new FigmaRateLimitError(
+        `Rate limit wait time (${Math.round(waitMs / 1000)}s) exceeds maximum allowed delay (${MAX_RETRY_DELAY_MS / 1000}s).${upgradeInfo}`,
+        {
+          retryAfterSec: rateLimitHeaders.retryAfterSec ?? Math.round(waitMs / 1000),
+          planTier: rateLimitHeaders.planTier,
+          rateLimitType: rateLimitHeaders.rateLimitType,
+          upgradeLink: rateLimitHeaders.upgradeLink,
+        }
+      );
     }
 
     console.warn(

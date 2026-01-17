@@ -159,6 +159,9 @@ describe('fetchNodes', () => {
 
   it('handles rate limit response with retry', async () => {
     let callCount = 0;
+    const rateLimitHeaders = new Headers({
+      'Retry-After': '1',
+    });
     global.fetch = vi.fn().mockImplementation(async () => {
       callCount++;
       if (callCount === 1) {
@@ -166,6 +169,7 @@ describe('fetchNodes', () => {
           ok: false,
           status: 429,
           statusText: 'Too Many Requests',
+          headers: rateLimitHeaders,
         } as Response;
       }
       return {
@@ -194,10 +198,14 @@ describe('fetchNodes', () => {
   }, 10000);
 
   it('handles rate limit max retries exceeded', async () => {
+    const rateLimitHeaders = new Headers({
+      'Retry-After': '1',
+    });
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 429,
       statusText: 'Too Many Requests',
+      headers: rateLimitHeaders,
     } as Response);
 
     const directives: FigmaDirective[] = [
