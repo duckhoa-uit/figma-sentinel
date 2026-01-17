@@ -91,3 +91,18 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcade-8c4d-72e8-8754-9842d
   - Use `it.each(array)('description %s', (value) => ...)` for parameterized tests
   - Import CommentStyle type to use with `toEqual<CommentStyle>()` for type-safe assertions
 ---
+
+## 2026-01-17 - US-005
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcadf-d278-775c-b52e-3a142ea214c3
+- Created `detectDirectives` function in `packages/core/src/directive-detector.ts`
+- Detects @figma-file directive and extracts file key
+- Detects all @figma-node directives and extracts node IDs (no duplicates)
+- Supports detection in //, #, /* */, and HTML comment styles
+- Returns `DetectedDirectives` interface: `{ hasFileDirective, fileKey, nodeIds }`
+- Exported from `packages/core/src/index.ts`
+- Files changed: `packages/core/src/directive-detector.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use multiple regex patterns for different comment styles rather than one complex pattern
+  - Global regex patterns need lastIndex reset before each use
+  - TypeScript requires explicit null checks for regex match groups
+---

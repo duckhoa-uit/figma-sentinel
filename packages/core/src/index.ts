@@ -143,6 +143,15 @@ export {
 // Directive Detector exports
 export { detectDirectives, type DetectedDirectives } from './directive-detector.js';
 
+// Directive Inserter exports
+export {
+  insertDirectives,
+  appendNodeDirective,
+  replaceDirectives,
+  type InsertDirectivesOptions,
+  type InsertDirectivesResult,
+} from './directive-inserter.js';
+
 // Variables Client exports
 export {
   fetchVariables,
