@@ -685,3 +685,22 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcccc-eb66-74ca-8fd3-0aff5
   - Use `createEventEmitter()` factory to create typed event emitters
   - Remember to cleanup with `removeAllListeners()` and `clearInterval()` after use
 ---
+
+## 2026-01-17 - US-026
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccd1-6f08-7648-b76f-3bea0508cb91
+- Created comprehensive test suite for sync command in `packages/cli/src/__tests__/sync.test.ts`
+- 14 tests covering:
+  - Error handling: FigmaAuthenticationError, FigmaNotFoundError, FigmaRateLimitError, FigmaServerError, FigmaNetworkError, generic FigmaSentinelError, non-Figma errors, missing FIGMA_TOKEN
+  - Success output: exits with code 0, shows changes summary
+  - --verbose flag: runs successfully with debug output including cwd
+  - Dry run mode: shows dry run warning
+  - Result with errors: shows warnings when success is true, exits with 1 when success is false
+- Mocked runSentinel, resolveConfig, console methods, and process.exit
+- All tests pass, typecheck passes, lint passes (warnings only)
+- Files changed: `packages/cli/src/__tests__/sync.test.ts`
+- **Learnings for future iterations:**
+  - Mock runSentinel at module level with vi.mock and vi.importActual to preserve actual exports
+  - Sync command internally overrides console.log, so capturing logs requires checking mock calls after
+  - Use `mockResolvedValueOnce` for each test to avoid mock state pollution
+  - The CLI package name is `@khoavhd/figma-sentinel` (not `@khoavhd/figma-sentinel-cli`)
+---

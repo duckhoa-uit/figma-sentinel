@@ -430,7 +430,7 @@
         "All tests pass: `pnpm -F @khoavhd/figma-sentinel-cli test`"
       ],
       "priority": 26,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
