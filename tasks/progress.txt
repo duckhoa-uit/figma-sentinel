@@ -165,3 +165,21 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaed-c11f-711f-b7a8-dd9ac
   - US-009 was fully implemented as part of US-008 due to natural code flow
   - All quality checks pass: typecheck, tests (340 tests), lint (warnings only)
 ---
+
+## 2026-01-17 - US-010
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaef-2d75-72bf-8d3f-10dcc9e13330
+- Implemented conflict resolution for existing directives in `packages/cli/src/commands/link.ts`
+- Added `resolveConflict` function that handles:
+  - Interactive prompts with 'Add node to existing', 'Replace all', 'Cancel' options
+  - 'Add node' option only shown if same file key and new node ID provided
+  - Duplicate node ID detection (skips with info message)
+  - Warning display when file keys don't match
+- `--force` flag: always replaces without prompt
+- `--yes` flag: auto-add if same key, auto-replace if different
+- Uses `prompts` library for interactive selection
+- Files changed: `packages/cli/src/commands/link.ts`
+- **Learnings for future iterations:**
+  - Use `prompts` library with type: 'select' for choice menus
+  - Stop spinner before prompting (spinner.stop()) to avoid display issues
+  - Check for undefined response.action to handle user Ctrl+C cancellation
+---
