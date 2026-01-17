@@ -4,14 +4,17 @@
  * Fetches specific Figma nodes referenced in code with batching and rate limiting.
  */
 
+import pLimit from 'p-limit';
 import type {
   FigmaDirective,
   FigmaApiNodesResponse,
   FigmaNode,
   FetchRequest,
+  ApiConfig,
 } from './types.js';
 import { parseRateLimitHeaders } from './error-parser.js';
 import { FigmaRateLimitError } from './errors.js';
+import { DEFAULT_API_CONFIG } from './config.js';
 
 const FIGMA_API_BASE = 'https://api.figma.com';
 const MAX_RETRIES = 3;
@@ -199,18 +202,32 @@ async function fetchNodesForFileKey(
   return { nodes, errors };
 }
 
-export async function fetchNodes(directives: FigmaDirective[]): Promise<FetchResult> {
+export interface FetchNodesOptions {
+  /** API configuration for concurrency control */
+  apiConfig?: Partial<ApiConfig>;
+}
+
+export async function fetchNodes(
+  directives: FigmaDirective[],
+  options?: FetchNodesOptions,
+): Promise<FetchResult> {
   const token = getToken();
   const requests = groupDirectivesByFileKey(directives);
   const allNodes: FetchedNode[] = [];
   const allErrors: FetchError[] = [];
 
+  const concurrency = options?.apiConfig?.concurrency ?? DEFAULT_API_CONFIG.concurrency;
+  const limit = pLimit(concurrency);
+
   console.log(
-    `Fetching ${directives.reduce((sum, d) => sum + d.nodeIds.length, 0)} nodes from ${requests.length} Figma file(s)`,
+    `Fetching ${directives.reduce((sum, d) => sum + d.nodeIds.length, 0)} nodes from ${requests.length} Figma file(s) (concurrency: ${concurrency})`,
   );
 
-  for (const request of requests) {
-    const result = await fetchNodesForFileKey(request, token);
+  const results = await Promise.all(
+    requests.map(request => limit(() => fetchNodesForFileKey(request, token))),
+  );
+
+  for (const result of results) {
     allNodes.push(...result.nodes);
     allErrors.push(...result.errors);
   }

@@ -43,6 +43,7 @@ export {
   type FetchedNode,
   type FetchResult,
   type FetchError,
+  type FetchNodesOptions,
 } from './figma-client.js';
 
 // Storage exports

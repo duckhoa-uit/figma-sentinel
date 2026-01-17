@@ -423,3 +423,21 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca0-637a-7171-83be-879bd
   - Mock fetch with Headers() to test header parsing behavior
   - fetchNodes catches errors internally and returns them in errors array
 ---
+
+## 2026-01-17 - US-011
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca3-2bf2-70cc-beb1-d0c830c958bf
+- Added `p-limit` v6.2.0 to `packages/core/package.json` dependencies
+- Created `ApiConfig` interface in types.ts with concurrency, maxRetries, maxRetryDelayMs
+- Added optional `api?: ApiConfig` property to `SentinelConfig` interface
+- Created `DEFAULT_API_CONFIG` constant with defaults: concurrency=5, maxRetries=3, maxRetryDelayMs=3600000
+- Created `ApiConfigSchema` Zod schema with validation (concurrency 1-20, maxRetries 0-10)
+- Updated `SentinelConfigSchema` to include optional `api` field
+- Updated `validateConfig` to include 'api' in valid fields
+- Updated `mergeConfig` to merge api config with defaults
+- Exported `ApiConfig`, `DEFAULT_API_CONFIG`, `ApiConfigSchema` from barrel file
+- Files changed: `packages/core/package.json`, `packages/core/src/types.ts`, `packages/core/src/config.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use `as const` for DEFAULT_API_CONFIG to infer literal types
+  - Zod `.default()` provides fallback when parsing partial config
+  - Optional nested config objects need explicit undefined handling in mergeConfig
+---
