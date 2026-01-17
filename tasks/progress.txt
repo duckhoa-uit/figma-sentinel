@@ -122,3 +122,16 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae2-121c-7456-b035-24bdc
   - Use split(/\r?\n/) to handle both LF and CRLF line endings
   - Detect line ending style with content.includes('\r\n')
 ---
+
+## 2026-01-17 - US-007
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae4-c441-728f-8ef8-311d607c09eb
+- Created test suite for `detectDirectives` function (16 tests)
+- Created test suite for `insertDirectives`, `appendNodeDirective`, and `replaceDirectives` functions (25 tests)
+- Tests cover: detection in //, #, /* */, <!-- --> comment styles, insertion into empty/existing files, shebang handling, line ending preservation, append/replace modes
+- 41 tests total, all passing
+- Files changed: `packages/core/src/__tests__/directive-detector.test.ts`, `packages/core/src/__tests__/directive-inserter.test.ts`
+- **Learnings for future iterations:**
+  - Vitest doesn't have `toStartWith` matcher - use `expect(str.startsWith('...')).toBe(true)` instead
+  - Use `it.each()` pattern for parameterized tests
+  - Import types from source for type-safe assertions with `toEqual<Type>()`
+---
