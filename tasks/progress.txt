@@ -376,3 +376,17 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc99-ce19-700c-9884-8e627
   - Test both Figma error response formats for each status code
   - Edge cases include empty body, non-JSON, and long response text
 ---
+
+## 2026-01-17 - US-008
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc9c-16dd-70e3-bc59-10a6dbeee3e2
+- Updated `fetchWithRetry` function in `packages/core/src/figma-client.ts`
+- Imported `parseRateLimitHeaders` from error-parser.ts
+- On 429 response, parses headers using `parseRateLimitHeaders`
+- Uses `retryAfterSec` value if present (converted to ms), otherwise falls back to exponential backoff
+- Logs retry with wait time using console.warn
+- Files changed: `packages/core/src/figma-client.ts`
+- **Learnings for future iterations:**
+  - Retry-After header is in seconds, multiply by 1000 for ms
+  - Use !== undefined check for optional number properties
+  - Log wait time in ms for consistency with existing code
+---
