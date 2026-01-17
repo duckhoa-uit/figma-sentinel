@@ -619,3 +619,22 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccc0-adb7-77d3-bc39-a4cf8
   - Provide typed emit* and on* helper methods for type safety
   - Import types from error-parser.ts for RateLimitHeaders
 ---
+
+## 2026-01-17 - US-022
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccc2-45a5-70da-9a0a-9cf1a2cf2a7b
+- Created comprehensive test suite for `ErrorEventEmitter` class
+- 16 tests covering:
+  - 'error' event: payload with type, error, timestamp; context (fileKey, nodeId); listener return value
+  - 'retry' event: payload with attempt, maxRetries, delayMs, url; context support
+  - 'rateLimited' event: payload with retryAfterSec, headers (planTier, rateLimitType); context support
+  - 'completed' event: payload with successCount, failureCount, durationMs
+  - Multiple listeners: independent notification, event type isolation
+  - createEventEmitter factory: creates instances, independent isolation
+  - Type safety: error instance preservation with subclass properties
+- Used vi.useFakeTimers and vi.setSystemTime for deterministic timestamp testing
+- Files changed: `packages/core/src/__tests__/error-events.test.ts`
+- **Learnings for future iterations:**
+  - Use vi.setSystemTime() to control Date output in tests
+  - Use vi.fn<[PayloadType], void>() for typed mock functions
+  - Clean up listeners with emitter.removeAllListeners() in afterEach
+---
