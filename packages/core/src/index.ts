@@ -126,6 +126,13 @@ export {
   type LoadConfigResult,
 } from './config.js';
 
+// URL Parser exports
+export {
+  parseFigmaUrl,
+  FigmaUrlParseError,
+  type ParsedFigmaUrl,
+} from './url-parser.js';
+
 // Variables Client exports
 export {
   fetchVariables,
