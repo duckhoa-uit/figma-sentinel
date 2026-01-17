@@ -170,7 +170,7 @@
         "All tests pass: `pnpm -F @khoavhd/figma-sentinel-core test src/__tests__/fetch-retry.test.ts`"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {

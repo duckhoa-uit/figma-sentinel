@@ -404,3 +404,22 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcc9d-ac49-711b-90cb-0047f
   - FigmaRateLimitError accepts options object with retryAfterSec, planTier, rateLimitType, upgradeLink
   - Use Math.round for display values when converting between seconds and milliseconds
 ---
+
+## 2026-01-17 - US-010
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca0-637a-7171-83be-879bd8f45786
+- Created comprehensive test suite for fetchWithRetry in `packages/core/src/__tests__/fetch-retry.test.ts`
+- 11 tests covering:
+  - Retry-After header support: uses header value for wait time, parses all rate limit headers
+  - Exponential backoff fallback: falls back when header missing, uses increasing backoff times
+  - Max retry delay abort: aborts when Retry-After exceeds 1 hour, includes upgrade info in error
+  - Max retries behavior: gives up after MAX_RETRIES with both Retry-After and exponential backoff
+  - Retry success scenarios: succeeds after first retry, succeeds after multiple retries
+- Uses Vitest fake timers (vi.useFakeTimers, vi.advanceTimersByTimeAsync) for delay testing
+- All tests pass, typecheck passes, lint passes (warnings only)
+- Files changed: `packages/core/src/__tests__/fetch-retry.test.ts`
+- **Learnings for future iterations:**
+  - Use vi.useFakeTimers() in beforeEach and vi.useRealTimers() in afterEach
+  - Use vi.advanceTimersByTimeAsync() to advance timers in async tests
+  - Mock fetch with Headers() to test header parsing behavior
+  - fetchNodes catches errors internally and returns them in errors array
+---
