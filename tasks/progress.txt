@@ -27,6 +27,8 @@
 - Action package: use `tsc --emitDeclarationOnly` for DTS like core (tsup --dts has issues with project references)
 - For Figma Variables API: requires Enterprise plan, use @figma-variables: directive syntax
 - import * as crypto from 'crypto' instead of require('crypto') to satisfy ESLint
+- Use `workspace:*` in package.json dependencies for local workspace packages (resolves TypeScript issues)
+- insertDirectives takes an options object: { fileKey, nodeId, filePath, content, mode }
 
 ---
 
@@ -134,4 +136,20 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae4-c441-728f-8ef8-311d6
   - Vitest doesn't have `toStartWith` matcher - use `expect(str.startsWith('...')).toBe(true)` instead
   - Use `it.each()` pattern for parameterized tests
   - Import types from source for type-safe assertions with `toEqual<Type>()`
+---
+
+## 2026-01-17 - US-008
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcae7-8ff2-74ce-94a1-c38b26bd8ffd
+- Created `linkCommand` in `packages/cli/src/commands/link.ts`
+- Registered command in `packages/cli/src/index.ts` with all options
+- Command accepts: Figma URL as positional arg, `-f/--file` and `-p/--path` for target files, `-y/--yes` for auto-confirm, `--force` for replacing directives, `-c/--cwd` for working directory
+- Added comprehensive help text with usage examples via `addHelpText('after', ...)`
+- Uses ora spinner and kleur for colored output
+- Processes multiple files with summary at end
+- Fixed workspace:* dependency for @khoavhd/figma-sentinel-core to use local workspace
+- Files changed: `packages/cli/src/commands/link.ts`, `packages/cli/src/index.ts`, `packages/cli/package.json`
+- **Learnings for future iterations:**
+  - Use `workspace:*` in package.json dependencies to reference local workspace packages (fixes TypeScript resolution issues)
+  - `insertDirectives` takes an options object, not separate parameters
+  - Commander's `addHelpText('after', ...)` adds additional help sections after the standard help
 ---
