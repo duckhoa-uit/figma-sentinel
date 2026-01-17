@@ -669,3 +669,19 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcccb-0985-713a-9bff-b01b6
   - The sync.ts already had verbose support implemented - just missing the CLI flag registration
   - ConsoleLogger imported from core package handles log level filtering
 ---
+
+## 2026-01-17 - US-025
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcccc-eb66-74ca-8fd3-0aff54a7d54b
+- Updated sync command to use `generateErrorMessage` for typed error messages
+- Errors now show with actionable messages in red via `generateErrorMessage` from core
+- Added event emitter integration for rate limit spinner with countdown
+- Rate limit events show yellow spinner with countdown timer (updating every second)
+- Retry events show yellow spinner with attempt count
+- Success output already in green (kleur), errors in red with actionable messages
+- Added `eventEmitter` option to `SentinelOptions` and threaded it through to `fetchNodes`
+- Files changed: `packages/cli/src/commands/sync.ts`, `packages/core/src/sentinel.ts`
+- **Learnings for future iterations:**
+  - Event payload properties are nested under `details` (e.g., `payload.details.retryAfterSec`)
+  - Use `createEventEmitter()` factory to create typed event emitters
+  - Remember to cleanup with `removeAllListeners()` and `clearInterval()` after use
+---
