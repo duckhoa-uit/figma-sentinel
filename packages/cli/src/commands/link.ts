@@ -29,6 +29,153 @@ export interface LinkResult {
 }
 
 /**
+ * Prompt for a valid Figma URL, re-prompting on invalid input
+ */
+async function promptForUrl(): Promise<{ fileKey: string; nodeId: string | null } | null> {
+  let isValid = false;
+
+  while (!isValid) {
+    const response = await prompts({
+      type: 'text',
+      name: 'url',
+      message: 'Enter Figma URL:',
+    });
+
+    // User cancelled (Ctrl+C)
+    if (!response.url) {
+      return null;
+    }
+
+    try {
+      const parsed = parseFigmaUrl(response.url);
+      isValid = true;
+      return parsed;
+    } catch (error) {
+      console.log(
+        kleur.red(`  Invalid URL: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      );
+      console.log(kleur.gray('  Please try again.\n'));
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Prompt for a valid file path, re-prompting if file doesn't exist
+ */
+async function promptForFile(cwd: string): Promise<string | null> {
+  let isValid = false;
+
+  while (!isValid) {
+    const response = await prompts({
+      type: 'text',
+      name: 'file',
+      message: 'Enter file path:',
+    });
+
+    // User cancelled (Ctrl+C)
+    if (!response.file) {
+      return null;
+    }
+
+    const absolutePath = path.isAbsolute(response.file)
+      ? response.file
+      : path.resolve(cwd, response.file);
+
+    if (fs.existsSync(absolutePath)) {
+      isValid = true;
+      return absolutePath;
+    }
+
+    console.log(kleur.red(`  File not found: ${absolutePath}`));
+    console.log(kleur.gray('  Please try again.\n'));
+  }
+
+  return null;
+}
+
+/**
+ * Run interactive mode: prompt for URL and file(s), with option to link multiple files
+ */
+async function runInteractiveMode(
+  initialUrl: { fileKey: string; nodeId: string | null } | null,
+  cwd: string,
+  options: LinkOptions
+): Promise<void> {
+  // Get URL if not provided
+  let parsedUrl = initialUrl;
+  if (!parsedUrl) {
+    parsedUrl = await promptForUrl();
+    if (!parsedUrl) {
+      console.log(kleur.yellow('\nCancelled.'));
+      return;
+    }
+  }
+
+  const { fileKey, nodeId } = parsedUrl;
+
+  // Warn if no node ID
+  if (!nodeId) {
+    console.log(
+      kleur.yellow('\n⚠ Warning: URL has no node ID. File will be linked but not tracked for changes.')
+    );
+  }
+
+  const result: LinkResult = { success: 0, failed: 0, skipped: 0, warnings: 0 };
+  let continueLoop = true;
+
+  while (continueLoop) {
+    // Prompt for file path
+    const filePath = await promptForFile(cwd);
+    if (!filePath) {
+      console.log(kleur.yellow('\nCancelled.'));
+      break;
+    }
+
+    // Process the file
+    await processFile(filePath, fileKey, nodeId, options, result);
+
+    // Ask if user wants to link another file
+    const response = await prompts({
+      type: 'confirm',
+      name: 'another',
+      message: 'Link another file?',
+      initial: false,
+    });
+
+    // User cancelled or said no
+    if (!response.another) {
+      continueLoop = false;
+    }
+  }
+
+  // Show summary if multiple files were processed
+  const totalProcessed = result.success + result.failed + result.skipped;
+  if (totalProcessed > 1) {
+    showSummary(result);
+  }
+}
+
+/**
+ * Show summary of link operations
+ */
+function showSummary(result: LinkResult): void {
+  console.log(kleur.gray('\n─────────────────────────────────'));
+  console.log(kleur.bold('Summary:'));
+  console.log(kleur.green(`  ✔ Success: ${result.success}`));
+  if (result.failed > 0) {
+    console.log(kleur.red(`  ✖ Failed: ${result.failed}`));
+  }
+  if (result.skipped > 0) {
+    console.log(kleur.yellow(`  ⊘ Skipped: ${result.skipped}`));
+  }
+  if (result.warnings > 0) {
+    console.log(kleur.yellow(`  ⚠ Warnings: ${result.warnings}`));
+  }
+}
+
+/**
  * Execute the link command
  */
 export async function linkCommand(
@@ -48,20 +195,26 @@ export async function linkCommand(
     targetFiles.push(...paths);
   }
 
-  // If no URL provided and not in interactive mode, show error
-  if (!url) {
-    console.error(kleur.red('Error: Figma URL is required'));
-    console.log(kleur.gray('\nUsage: figma-sentinel link <url> -f <file>'));
-    console.log(kleur.gray('       figma-sentinel link --help for more options'));
-    process.exit(1);
-  }
+  // If no URL or no files provided, enter interactive mode
+  if (!url || targetFiles.length === 0) {
+    // Try to parse URL if provided (for partial interactive mode)
+    let parsedUrl: { fileKey: string; nodeId: string | null } | null = null;
+    if (url) {
+      try {
+        parsedUrl = parseFigmaUrl(url);
+        console.log(
+          kleur.green(`✔ Parsed Figma URL: file=${parsedUrl.fileKey}, node=${parsedUrl.nodeId || 'none'}`)
+        );
+      } catch (error) {
+        console.log(
+          kleur.red(`Invalid URL: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        );
+        parsedUrl = null;
+      }
+    }
 
-  // If no files provided, show error
-  if (targetFiles.length === 0) {
-    console.error(kleur.red('Error: At least one target file is required'));
-    console.log(kleur.gray('\nUsage: figma-sentinel link <url> -f <file>'));
-    console.log(kleur.gray('       figma-sentinel link <url> -f file1.tsx -f file2.tsx'));
-    process.exit(1);
+    await runInteractiveMode(parsedUrl, cwd, options);
+    return;
   }
 
   // Parse the Figma URL
@@ -102,18 +255,7 @@ export async function linkCommand(
 
   // Show summary for batch operations
   if (targetFiles.length > 1) {
-    console.log(kleur.gray('\n─────────────────────────────────'));
-    console.log(kleur.bold('Summary:'));
-    console.log(kleur.green(`  ✔ Success: ${result.success}`));
-    if (result.failed > 0) {
-      console.log(kleur.red(`  ✖ Failed: ${result.failed}`));
-    }
-    if (result.skipped > 0) {
-      console.log(kleur.yellow(`  ⊘ Skipped: ${result.skipped}`));
-    }
-    if (result.warnings > 0) {
-      console.log(kleur.yellow(`  ⚠ Warnings: ${result.warnings}`));
-    }
+    showSummary(result);
   }
 }
 
