@@ -585,3 +585,20 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccb3-eba3-77c9-a04b-72b75
   - FetchResult no longer has errors array - consumers must catch thrown errors
   - Error types carry context like fileKey in FigmaNotFoundError
 ---
+
+## 2026-01-17 - US-020
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccbe-945b-777c-89ee-6cef06478723
+- Created comprehensive test suite for fail-fast behavior in `packages/core/src/__tests__/fail-fast.test.ts`
+- 10 tests covering:
+  - Execution stops after first error from multiple file requests
+  - Correct error types thrown: FigmaAuthenticationError (401/403), FigmaNotFoundError (404), FigmaServerError (500/502), FigmaNetworkError
+  - FigmaNotFoundError includes fileKey context in both 404 response and missing node scenarios
+  - Error cause chain preserved when network error wraps original error
+  - First rejection propagates in Promise.all scenario with multiple files
+- All tests pass, typecheck passes, lint passes (warnings only)
+- Files changed: `packages/core/src/__tests__/fail-fast.test.ts`
+- **Learnings for future iterations:**
+  - Use try/catch blocks with expect.fail() for assertions on error properties
+  - Promise.all starts all requests but propagates first rejection
+  - Cast errors with `(error as FigmaNotFoundError)` to access subclass-specific properties
+---
