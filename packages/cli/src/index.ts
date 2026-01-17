@@ -59,9 +59,11 @@ program
   .command('init')
   .description('Initialize Figma Sentinel in your project')
   .option('--cwd <dir>', 'Set working directory')
+  .option('-y, --yes', 'Skip the link prompt after setup')
   .action(async (options) => {
     await initCommand({
       cwd: options.cwd,
+      yes: options.yes,
     });
   });
 

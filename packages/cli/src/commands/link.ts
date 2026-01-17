@@ -31,7 +31,7 @@ export interface LinkResult {
 /**
  * Prompt for a valid Figma URL, re-prompting on invalid input
  */
-async function promptForUrl(): Promise<{ fileKey: string; nodeId: string | null } | null> {
+export async function promptForUrl(): Promise<{ fileKey: string; nodeId: string | null } | null> {
   let isValid = false;
 
   while (!isValid) {
@@ -64,7 +64,7 @@ async function promptForUrl(): Promise<{ fileKey: string; nodeId: string | null 
 /**
  * Prompt for a valid file path, re-prompting if file doesn't exist
  */
-async function promptForFile(cwd: string): Promise<string | null> {
+export async function promptForFile(cwd: string): Promise<string | null> {
   let isValid = false;
 
   while (!isValid) {
@@ -262,7 +262,7 @@ export async function linkCommand(
 /**
  * Process a single file for linking
  */
-async function processFile(
+export async function processFile(
   filePath: string,
   fileKey: string,
   nodeId: string | null,

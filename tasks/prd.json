@@ -247,7 +247,7 @@
         "Typecheck passes"
       ],
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -263,8 +263,8 @@
         "Typecheck passes"
       ],
       "priority": 14,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Already implemented in previous iteration - imports and uses link command functions"
     },
     {
       "id": "US-015",

@@ -212,3 +212,41 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf3-237c-74b2-8404-da27d
   - Return null from prompt functions when user cancels (Ctrl+C) for clean abort handling
   - Interactive mode can fall back to non-interactive if URL is provided but file is not
 ---
+
+## 2026-01-17 - US-013
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcaf5-22bc-738b-8061-ec9c899c11ba
+- Created comprehensive test suite for `linkCommand` function in `packages/cli/src/__tests__/link.test.ts`
+- 19 tests covering:
+  - Basic link command with URL and file (design URLs, legacy file URLs, URLs without node ID)
+  - `--path` alias works same as `--file`
+  - Error handling for non-existent files
+  - Error handling for invalid URLs (non-Figma, FigJam)
+  - `--yes` flag auto-add/auto-replace behavior
+  - `--force` flag replacing directives
+  - Batch linking with multiple files
+  - Partial batch failure continues processing
+  - Duplicate node ID handling
+  - `--cwd` option for relative path resolution
+  - Comment style by file extension (TS, Python, CSS, HTML)
+- All tests pass with typecheck and lint (warnings only)
+- Files changed: `packages/cli/src/__tests__/link.test.ts`
+- **Learnings for future iterations:**
+  - Use vi.spyOn(process, 'exit') to mock process.exit and test error paths
+  - Create test fixtures in `src/__tests__/fixtures/` directory and cleanup with fs.rmSync
+  - Use `createTestFile` helper function for DRY test setup
+---
+
+## 2026-01-17 - US-014
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcb85-7a63-76a4-8b4b-5d2e2d070e61
+- Verified US-014 was already fully implemented in a previous iteration
+- `packages/cli/src/commands/init.ts` has `promptToLinkFile` function that:
+  - Asks "Would you like to link a Figma file now?" after config creation
+  - Prompts for Figma URL and target file using imported functions from link.ts
+  - If user cancels, init still completes successfully
+- `--yes` flag in init command skips the link prompt (line 269)
+- All acceptance criteria verified as passing
+- Files changed: `tasks/prd.json` (marked as passing)
+- **Learnings for future iterations:**
+  - Check if previous iterations already implemented the story before starting work
+  - Init command reuses link command functions via imports for consistency
+---
