@@ -28,7 +28,9 @@ export function generateErrorMessage(
   error: FigmaSentinelError,
   context?: ErrorMessageContext
 ): string {
-  const fileKey = context?.fileKey ?? error instanceof FigmaNotFoundError ? (error as FigmaNotFoundError).fileKey : undefined;
+  const fileKey =
+    context?.fileKey ??
+    (error instanceof FigmaNotFoundError ? (error as FigmaNotFoundError).fileKey : undefined);
 
   switch (error.code) {
     case 'VALIDATION_ERROR':

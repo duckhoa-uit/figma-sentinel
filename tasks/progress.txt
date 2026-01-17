@@ -490,3 +490,23 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccaa-b2ac-7364-97dc-157f8
   - ConsoleLogger uses console.log for debug/info, console.warn for warn, console.error for error
   - Use it.each() pattern to test all log levels systematically
 ---
+
+## 2026-01-17 - US-015
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccac-867f-764c-9e2e-b55ab1e6bf8a
+- Created `generateErrorMessage` function in `packages/core/src/error-messages.ts`
+- Generates user-friendly, actionable error messages for each error type:
+  - 400 (VALIDATION_ERROR): "Invalid request: [detail]. Check Figma URL format or reduce request size."
+  - 401 (AUTH_ERROR): "Authentication failed. Verify your FIGMA_TOKEN is valid and not expired."
+  - 403: "Access denied for file [key]. Check: 1) Token has file_read scope 2) You have view access 3) Enterprise plan for Variables."
+  - 404 (NOT_FOUND): "Figma file [key] not found. Verify the file key from your Figma URL."
+  - 429 (RATE_LIMIT): "Rate limit exceeded. Waiting [X]s, Tier: [tier], Type: [type]. Upgrade: [link]"
+  - 500 (SERVER_ERROR): "Figma server error. Try reducing nodes requested or try again later."
+  - NETWORK_ERROR: "Network error: [message]. Check internet connection and try again."
+- Created ErrorMessageContext interface for optional fileKey/nodeId context
+- Exported from barrel file (index.ts)
+- Files changed: `packages/core/src/error-messages.ts`, `packages/core/src/index.ts`
+- **Learnings for future iterations:**
+  - Use switch statement on error.code for dispatching to different message formats
+  - Use instanceof checks to access subclass-specific properties like FigmaRateLimitError.retryAfterSec
+  - Only import error classes actually needed to avoid TypeScript unused-import errors
+---
