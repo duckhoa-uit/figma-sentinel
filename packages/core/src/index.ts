@@ -178,6 +178,9 @@ export {
   type ParsedErrorResponse,
 } from './error-parser.js';
 
+// Logger exports
+export { ConsoleLogger, type Logger, type LogLevel } from './logger.js';
+
 // Variables Client exports
 export {
   fetchVariables,
