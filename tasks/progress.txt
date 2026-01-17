@@ -472,3 +472,21 @@ Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bcca9-490a-70eb-87e8-83445
   - ConsoleLogger adds prefix tags like [DEBUG], [INFO], etc. for visibility
   - Logger interface uses `unknown[]` for variadic args to be flexible
 ---
+
+## 2026-01-17 - US-014
+Thread: https://cliproxyapi-khoa.fly.dev/threads/T-019bccaa-b2ac-7364-97dc-157f801b3b1d
+- Created comprehensive test suite for ConsoleLogger in `packages/core/src/__tests__/logger.test.ts`
+- 24 tests covering:
+  - Default log level (info) filters debug but allows info/warn/error
+  - Debug log level allows all messages
+  - Warn log level filters debug and info
+  - Error log level only allows error messages
+  - Additional arguments passed correctly to console methods
+  - Log level filtering hierarchy with parameterized tests
+- All tests pass, typecheck passes, lint passes (warnings only)
+- Files changed: `packages/core/src/__tests__/logger.test.ts`
+- **Learnings for future iterations:**
+  - Use vi.spyOn(console, 'log').mockImplementation(() => {}) to mock and verify console calls
+  - ConsoleLogger uses console.log for debug/info, console.warn for warn, console.error for error
+  - Use it.each() pattern to test all log levels systematically
+---
